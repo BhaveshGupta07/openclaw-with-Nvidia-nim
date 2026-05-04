@@ -140,12 +140,23 @@ async function expectFinalEditFallbackToSend(params: {
   const result = await deliverFinalAnswer(params.harness, params.text);
   expect(result.kind).toBe("sent");
   expect(params.harness.editPreview).toHaveBeenCalledTimes(1);
-  expect(params.harness.sendPayload).toHaveBeenCalledWith(
-    expect.objectContaining({ text: params.text }),
-  );
+  expectSendPayloadWith(params.harness, { text: params.text });
   expect(params.harness.log).toHaveBeenCalledWith(
     expect.stringContaining(params.expectedLogSnippet),
   );
+}
+
+function expectSendPayloadWith(
+  harness: ReturnType<typeof createHarness>,
+  expected: Partial<ReplyPayload>,
+) {
+  expect(
+    harness.sendPayload.mock.calls.some(([payload]) =>
+      Object.entries(expected).every(([key, value]) => {
+        return (payload as Record<string, unknown>)[key] === value;
+      }),
+    ),
+  ).toBe(true);
 }
 
 function expectPreviewFinalized(
@@ -290,9 +301,7 @@ describe("createLaneTextDeliverer", () => {
     const result = await deliverFinalAnswer(harness, HELLO_FINAL);
 
     expect(result.kind).toBe("sent");
-    expect(harness.sendPayload).toHaveBeenCalledWith(
-      expect.objectContaining({ text: HELLO_FINAL }),
-    );
+    expectSendPayloadWith(harness, { text: HELLO_FINAL });
     expect(harness.log).toHaveBeenCalledWith(
       expect.stringContaining("failed before reaching Telegram; falling back"),
     );
@@ -320,9 +329,7 @@ describe("createLaneTextDeliverer", () => {
 
     expect(result.kind).toBe("sent");
     expect(harness.editPreview).not.toHaveBeenCalled();
-    expect(harness.sendPayload).toHaveBeenCalledWith(
-      expect.objectContaining({ text: "Short final" }),
-    );
+    expectSendPayloadWith(harness, { text: "Short final" });
   });
 
   it("does not create a synthetic preview for final-only text", async () => {
@@ -343,9 +350,7 @@ describe("createLaneTextDeliverer", () => {
     expect(answerStream.update).not.toHaveBeenCalled();
     expect(answerStream.materialize).not.toHaveBeenCalled();
     expect(harness.editPreview).not.toHaveBeenCalled();
-    expect(harness.sendPayload).toHaveBeenCalledWith(
-      expect.objectContaining({ text: "Final only" }),
-    );
+    expectSendPayloadWith(harness, { text: "Final only" });
   });
 
   it("keeps existing preview when final text regresses", async () => {
@@ -381,7 +386,7 @@ describe("createLaneTextDeliverer", () => {
 
     expect(result.kind).toBe("sent");
     expect(harness.editPreview).not.toHaveBeenCalled();
-    expect(harness.sendPayload).toHaveBeenCalledWith(expect.objectContaining({ text: longText }));
+    expectSendPayloadWith(harness, { text: longText });
     expect(harness.log).toHaveBeenCalledWith(expect.stringContaining("preview final too long"));
   });
 
@@ -429,9 +434,7 @@ describe("createLaneTextDeliverer", () => {
 
     expect(result.kind).toBe("sent");
     expect(harness.stopDraftLane).toHaveBeenCalledTimes(1);
-    expect(harness.sendPayload).toHaveBeenCalledWith(
-      expect.objectContaining({ text: HELLO_FINAL }),
-    );
+    expectSendPayloadWith(harness, { text: HELLO_FINAL });
     expect(harness.editPreview).not.toHaveBeenCalled();
     expect(harness.answer.stream?.clear).toHaveBeenCalledTimes(1);
     expect(harness.answer.stream?.forceNewMessage).toHaveBeenCalledTimes(1);
@@ -486,9 +489,7 @@ describe("createLaneTextDeliverer", () => {
     const result = await deliverFinalAnswer(harness, HELLO_FINAL);
 
     expect(result.kind).toBe("sent");
-    expect(harness.sendPayload).toHaveBeenCalledWith(
-      expect.objectContaining({ text: HELLO_FINAL }),
-    );
+    expectSendPayloadWith(harness, { text: HELLO_FINAL });
     expect(harness.editPreview).not.toHaveBeenCalled();
     expect(harness.deletePreviewMessage).toHaveBeenCalledWith(222);
   });
@@ -546,9 +547,7 @@ describe("createLaneTextDeliverer", () => {
     const result = await deliverFinalAnswer(harness, "Complete final answer");
 
     expect(harness.editPreview).toHaveBeenCalledTimes(1);
-    expect(harness.sendPayload).toHaveBeenCalledWith(
-      expect.objectContaining({ text: "Complete final answer" }),
-    );
+    expectSendPayloadWith(harness, { text: "Complete final answer" });
     expect(result.kind).toBe("sent");
     expect(harness.deletePreviewMessage).toHaveBeenCalledWith(5555);
   });
@@ -640,9 +639,7 @@ describe("createLaneTextDeliverer", () => {
     const result = await deliverFinalAnswer(harness, HELLO_FINAL);
 
     expect(result.kind).toBe("sent");
-    expect(harness.sendPayload).toHaveBeenCalledWith(
-      expect.objectContaining({ text: HELLO_FINAL }),
-    );
+    expectSendPayloadWith(harness, { text: HELLO_FINAL });
   });
 
   it("retains when sendMayHaveLanded is true and a prior preview was visible", async () => {
@@ -681,9 +678,10 @@ describe("createLaneTextDeliverer", () => {
     });
 
     expect(result.kind).toBe("sent");
-    expect(harness.sendPayload).toHaveBeenCalledWith(
-      expect.objectContaining({ text: "Final with media", mediaUrl: "file:///tmp/example.png" }),
-    );
+    expectSendPayloadWith(harness, {
+      text: "Final with media",
+      mediaUrl: "file:///tmp/example.png",
+    });
     expect(harness.deletePreviewMessage).toHaveBeenCalledWith(4444);
   });
 });

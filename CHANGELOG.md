@@ -285,6 +285,7 @@ Docs: https://docs.openclaw.ai
 - Plugin tools: honor explicit tool denylists while selecting plugin tool runtimes, so denied plugin tools are not materialized for direct command or gateway surfaces before later policy filtering. Thanks @vincentkoc.
 - Plugin tools: filter factory-returned tools by manifest per-tool optional policy, so optional sibling tools from a shared runtime factory stay hidden unless explicitly allowed. Thanks @vincentkoc.
 - Agents/transcripts: retry context-overflow compaction from the current transcript only after the inbound user turn was actually persisted, and keep WebChat agent-run live delivery from writing duplicate Pi-managed assistant turns. Fixes #76424. (#77033)
+- Messaging: queue assembled channel-turn final replies before sending to reduce response loss when the gateway restarts between assistant completion and channel delivery. Refs #77000.
 - Agents/bootstrap: keep pending `BOOTSTRAP.md` and bootstrap truncation notices in system-prompt Project Context instead of copying setup text or raw warning diagnostics into WebChat user/runtime context. Fixes #76946.
 - Channels/CLI: keep `openclaw channels list --json` usable when provider usage fetching fails, and report per-provider usage errors without aborting the channel list. Refs #67595.
 - Agents/messaging: deliver distinct final commentary after same-target `message` tool sends while still deduping text/media already sent by the tool, so short closing remarks are no longer silently dropped. Fixes #76915. Thanks @hclsys.
