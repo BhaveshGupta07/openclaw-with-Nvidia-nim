@@ -53,6 +53,19 @@ function createWhatsAppReplyDeliveryReceipt(
 ): MessageReceipt {
   const receiptResultsById = new Map<string, MessageReceiptSourceResult>();
   for (const result of results) {
+    if (result.receipt?.parts.length) {
+      for (const part of result.receipt.parts) {
+        receiptResultsById.set(part.platformMessageId, {
+          ...(part.raw ?? { channel: "whatsapp", messageId: part.platformMessageId }),
+          meta: {
+            ...part.raw?.meta,
+            kind: result.kind,
+            providerAccepted: result.providerAccepted,
+          },
+        });
+      }
+      continue;
+    }
     for (const messageId of result.messageIds) {
       receiptResultsById.set(messageId, {
         channel: "whatsapp",

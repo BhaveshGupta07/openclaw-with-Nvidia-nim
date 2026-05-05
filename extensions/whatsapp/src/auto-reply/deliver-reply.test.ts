@@ -1,4 +1,5 @@
 import fsSync from "node:fs";
+import { createMessageReceiptFromOutboundResults } from "openclaw/plugin-sdk/channel-message";
 import { logVerbose } from "openclaw/plugin-sdk/runtime-env";
 import { sleep } from "openclaw/plugin-sdk/text-runtime";
 import { beforeAll, describe, expect, it, vi } from "vitest";
@@ -53,6 +54,10 @@ function acceptedSendResult(kind: "media" | "text", id: string) {
     kind,
     messageId: id,
     messageIds: [id],
+    receipt: createMessageReceiptFromOutboundResults({
+      kind,
+      results: [{ channel: "whatsapp", messageId: id }],
+    }),
     keys: [{ id }],
     providerAccepted: true,
   };
@@ -63,6 +68,10 @@ function unacceptedSendResult(kind: "media" | "text") {
     kind,
     messageId: "unknown",
     messageIds: [],
+    receipt: createMessageReceiptFromOutboundResults({
+      kind,
+      results: [],
+    }),
     keys: [],
     providerAccepted: false,
   };

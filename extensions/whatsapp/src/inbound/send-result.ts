@@ -1,4 +1,10 @@
 import type { WAMessage, WAMessageKey } from "@whiskeysockets/baileys";
+import {
+  createMessageReceiptFromOutboundResults,
+  type MessageReceipt,
+  type MessageReceiptPartKind,
+  type MessageReceiptSourceResult,
+} from "openclaw/plugin-sdk/channel-message";
 
 export type WhatsAppSendKind = "media" | "poll" | "reaction" | "text";
 
@@ -13,9 +19,39 @@ export type WhatsAppSendResult = {
   kind: WhatsAppSendKind;
   messageId: string;
   messageIds: string[];
+  receipt?: MessageReceipt;
   keys: WhatsAppSendKey[];
   providerAccepted: boolean;
 };
+
+function resolveWhatsAppReceiptKind(kind: WhatsAppSendKind): MessageReceiptPartKind {
+  if (kind === "media" || kind === "text") {
+    return kind;
+  }
+  return "unknown";
+}
+
+function toReceiptSourceResult(key: WhatsAppSendKey): MessageReceiptSourceResult {
+  return {
+    channel: "whatsapp",
+    messageId: key.id,
+    ...(key.remoteJid ? { toJid: key.remoteJid } : {}),
+    meta: {
+      fromMe: key.fromMe,
+      participant: key.participant,
+    },
+  };
+}
+
+function createWhatsAppSendReceipt(
+  kind: WhatsAppSendKind,
+  keys: readonly WhatsAppSendKey[],
+): MessageReceipt {
+  return createMessageReceiptFromOutboundResults({
+    kind: resolveWhatsAppReceiptKind(kind),
+    results: keys.map(toReceiptSourceResult),
+  });
+}
 
 function normalizeKey(key: WAMessageKey | undefined): WhatsAppSendKey | undefined {
   const id = typeof key?.id === "string" ? key.id.trim() : "";
@@ -40,6 +76,7 @@ export function normalizeWhatsAppSendResult(
     kind,
     messageId,
     messageIds: key ? [key.id] : [],
+    receipt: createWhatsAppSendReceipt(kind, key ? [key] : []),
     keys: key ? [key] : [],
     providerAccepted: Boolean(key),
   };
@@ -55,6 +92,7 @@ export function combineWhatsAppSendResults(
     kind,
     messageId: messageIds[0] ?? "unknown",
     messageIds,
+    receipt: createWhatsAppSendReceipt(kind, keys),
     keys,
     providerAccepted: results.some((result) => result.providerAccepted),
   };
