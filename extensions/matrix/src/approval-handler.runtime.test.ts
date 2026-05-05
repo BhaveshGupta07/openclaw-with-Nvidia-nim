@@ -21,6 +21,29 @@ type MatrixPendingPluginApprovalView = Extract<
 
 const MATRIX_APPROVAL_METADATA_KEY = "com.openclaw.approval";
 
+function buildMatrixReceipt(messageIds: readonly string[], roomId = "!room:example.org") {
+  return {
+    primaryPlatformMessageId: messageIds[0],
+    platformMessageIds: [...messageIds],
+    parts: messageIds.map((messageId, index) => ({
+      platformMessageId: messageId,
+      kind: "text" as const,
+      index,
+      raw: {
+        channel: "matrix",
+        messageId,
+        roomId,
+      },
+    })),
+    sentAt: 100,
+    raw: messageIds.map((messageId) => ({
+      channel: "matrix",
+      messageId,
+      roomId,
+    })),
+  };
+}
+
 function buildMatrixApprovalRoomTarget(
   roomId: string,
 ): MatrixDeliverPendingParams["plannedTarget"] {
@@ -143,6 +166,7 @@ describe("matrixApprovalNativeRuntime", () => {
       messageId: "$approval",
       primaryMessageId: "$approval",
       messageIds: ["$approval"],
+      receipt: buildMatrixReceipt(["$approval"]),
       roomId: "!room:example.org",
     });
     const reactMessage = vi.fn().mockResolvedValue(undefined);
@@ -196,6 +220,7 @@ describe("matrixApprovalNativeRuntime", () => {
       messageId: "$plugin-approval",
       primaryMessageId: "$plugin-approval",
       messageIds: ["$plugin-approval"],
+      receipt: buildMatrixReceipt(["$plugin-approval"]),
       roomId: "!room:example.org",
     });
     const reactMessage = vi.fn().mockResolvedValue(undefined);
@@ -271,6 +296,7 @@ describe("matrixApprovalNativeRuntime", () => {
       messageId: "$approval",
       primaryMessageId: "$approval",
       messageIds: ["$approval"],
+      receipt: buildMatrixReceipt(["$approval"]),
       roomId: "!room:example.org",
     });
     const reactMessage = vi.fn().mockImplementation(async () => {
@@ -318,8 +344,9 @@ describe("matrixApprovalNativeRuntime", () => {
       .mockRejectedValue(new Error("Matrix single-message text exceeds limit (5000 > 4000)"));
     const sendMessage = vi.fn().mockResolvedValue({
       messageId: "$last",
-      primaryMessageId: "$primary",
-      messageIds: ["$primary", "$last"],
+      primaryMessageId: "$legacy-primary",
+      messageIds: ["$legacy-primary", "$legacy-last"],
+      receipt: buildMatrixReceipt(["$primary", "$last"]),
       roomId: "!room:example.org",
     });
     const reactMessage = vi.fn().mockResolvedValue(undefined);

@@ -440,13 +440,19 @@ export const matrixApprovalNativeRuntime = createChannelApprovalNativeRuntimeAda
       }
       const messageIds = Array.from(
         new Set(
-          (result.messageIds ?? [result.messageId])
+          (result.receipt.platformMessageIds.length
+            ? result.receipt.platformMessageIds
+            : (result.messageIds ?? [result.messageId])
+          )
             .map((messageId) => messageId.trim())
             .filter(Boolean),
         ),
       );
       const reactionEventId =
-        result.primaryMessageId?.trim() || messageIds[0] || result.messageId.trim();
+        result.receipt.primaryPlatformMessageId?.trim() ||
+        result.primaryMessageId?.trim() ||
+        messageIds[0] ||
+        result.messageId.trim();
       registerMatrixApprovalReactionTarget({
         roomId: result.roomId,
         eventId: reactionEventId,
