@@ -77,7 +77,7 @@ import {
   buildModelsProviderData,
   buildPendingHistoryContextFromMap,
   createChannelPairingController,
-  createChannelReplyPipeline,
+  createChannelMessageReplyPipeline,
   DEFAULT_GROUP_HISTORY_LIMIT,
   DM_GROUP_ACCESS_REASON,
   isDangerousNameMatchingEnabled,
@@ -721,23 +721,24 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
           channel: "mattermost",
           accountId: account.accountId,
         });
-        const { onModelSelected, typingCallbacks, ...replyPipeline } = createChannelReplyPipeline({
-          cfg,
-          agentId: route.agentId,
-          channel: "mattermost",
-          accountId: account.accountId,
-          typing: {
-            start: () => sendTypingIndicator(opts.channelId, threadContext.effectiveReplyToId),
-            onStartError: (err) => {
-              logTypingFailure({
-                log: (message) => logger.debug?.(message),
-                channel: "mattermost",
-                target: opts.channelId,
-                error: err,
-              });
+        const { onModelSelected, typingCallbacks, ...replyPipeline } =
+          createChannelMessageReplyPipeline({
+            cfg,
+            agentId: route.agentId,
+            channel: "mattermost",
+            accountId: account.accountId,
+            typing: {
+              start: () => sendTypingIndicator(opts.channelId, threadContext.effectiveReplyToId),
+              onStartError: (err) => {
+                logTypingFailure({
+                  log: (message) => logger.debug?.(message),
+                  channel: "mattermost",
+                  target: opts.channelId,
+                  error: err,
+                });
+              },
             },
-          },
-        });
+          });
         const { dispatcher, replyOptions, markDispatchIdle } =
           core.channel.reply.createReplyDispatcherWithTyping({
             ...replyPipeline,
@@ -915,25 +916,26 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
       },
     );
     const shouldDeliverReplies = params.deliverReplies === true;
-    const { onModelSelected, typingCallbacks, ...replyPipeline } = createChannelReplyPipeline({
-      cfg,
-      agentId: params.route.agentId,
-      channel: "mattermost",
-      accountId: account.accountId,
-      typing: shouldDeliverReplies
-        ? {
-            start: () => sendTypingIndicator(params.channelId, params.effectiveReplyToId),
-            onStartError: (err) => {
-              logTypingFailure({
-                log: (message) => logger.debug?.(message),
-                channel: "mattermost",
-                target: params.channelId,
-                error: err,
-              });
-            },
-          }
-        : undefined,
-    });
+    const { onModelSelected, typingCallbacks, ...replyPipeline } =
+      createChannelMessageReplyPipeline({
+        cfg,
+        agentId: params.route.agentId,
+        channel: "mattermost",
+        accountId: account.accountId,
+        typing: shouldDeliverReplies
+          ? {
+              start: () => sendTypingIndicator(params.channelId, params.effectiveReplyToId),
+              onStartError: (err) => {
+                logTypingFailure({
+                  log: (message) => logger.debug?.(message),
+                  channel: "mattermost",
+                  target: params.channelId,
+                  error: err,
+                });
+              },
+            }
+          : undefined,
+      });
     const capturedTexts: string[] = [];
     const { dispatcher, replyOptions, markDispatchIdle } =
       core.channel.reply.createReplyDispatcherWithTyping({
@@ -1635,23 +1637,24 @@ export async function monitorMattermostProvider(opts: MonitorMattermostOpts = {}
           accountId: account.accountId,
         });
 
-        const { onModelSelected, typingCallbacks, ...replyPipeline } = createChannelReplyPipeline({
-          cfg,
-          agentId: route.agentId,
-          channel: "mattermost",
-          accountId: account.accountId,
-          typing: {
-            start: () => sendTypingIndicator(channelId, effectiveReplyToId),
-            onStartError: (err) => {
-              logTypingFailure({
-                log: (message) => logger.debug?.(message),
-                channel: "mattermost",
-                target: channelId,
-                error: err,
-              });
+        const { onModelSelected, typingCallbacks, ...replyPipeline } =
+          createChannelMessageReplyPipeline({
+            cfg,
+            agentId: route.agentId,
+            channel: "mattermost",
+            accountId: account.accountId,
+            typing: {
+              start: () => sendTypingIndicator(channelId, effectiveReplyToId),
+              onStartError: (err) => {
+                logTypingFailure({
+                  log: (message) => logger.debug?.(message),
+                  channel: "mattermost",
+                  target: channelId,
+                  error: err,
+                });
+              },
             },
-          },
-        });
+          });
         const draftPreviewEnabled = account.streamingMode !== "off";
         const draftToolProgressEnabled = shouldUpdateMattermostDraftToolProgress(account);
         const suppressDefaultToolProgressMessages =

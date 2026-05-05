@@ -16,6 +16,7 @@ vi.mock("../channels/turn/kernel.js", async (importOriginal) => {
 
 import {
   createChannelMessageReplyPipeline,
+  createReplyPrefixContext as createChannelMessageReplyPrefixContext,
   dispatchChannelMessageReplyWithBase,
   hasFinalChannelMessageReplyDispatch,
   recordChannelMessageReplyDispatch,
@@ -23,6 +24,7 @@ import {
 } from "./channel-message.js";
 import {
   createChannelReplyPipeline,
+  createReplyPrefixContext,
   resolveChannelSourceReplyDeliveryMode,
 } from "./channel-reply-pipeline.js";
 import {
@@ -238,6 +240,7 @@ describe("recordInboundSessionAndDispatchReply", () => {
     expect(resolveChannelMessageSourceReplyDeliveryMode).toBe(
       resolveChannelSourceReplyDeliveryMode,
     );
+    expect(createChannelMessageReplyPrefixContext).toBe(createReplyPrefixContext);
     expect(dispatchChannelMessageReplyWithBase).toBe(dispatchInboundReplyWithBase);
     expect(hasFinalChannelMessageReplyDispatch).toBe(hasFinalInboundReplyDispatch);
     expect(recordChannelMessageReplyDispatch).toBe(recordInboundSessionAndDispatchReply);

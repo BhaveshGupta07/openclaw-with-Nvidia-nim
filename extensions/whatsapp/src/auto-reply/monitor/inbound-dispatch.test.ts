@@ -50,7 +50,7 @@ vi.mock("./runtime-api.js", () => ({
     return phone ? `+${phone}` : null;
   },
   logVerbose: () => {},
-  resolveChannelSourceReplyDeliveryMode: ({
+  resolveChannelMessageSourceReplyDeliveryMode: ({
     cfg,
     ctx,
   }: {

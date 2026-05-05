@@ -5,8 +5,10 @@ import {
   logTypingFailure,
   removeAckReactionAfterReply,
 } from "openclaw/plugin-sdk/channel-feedback";
-import { deriveDurableFinalDeliveryRequirements } from "openclaw/plugin-sdk/channel-message";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
+import {
+  createChannelMessageReplyPipeline,
+  deriveDurableFinalDeliveryRequirements,
+} from "openclaw/plugin-sdk/channel-message";
 import {
   createChannelProgressDraftGate,
   formatChannelProgressDraftLine,
@@ -969,7 +971,7 @@ export const dispatchTelegramMessage = async ({
     }
 
     const { onModelSelected, ...replyPipeline } = (
-      telegramDeps.createChannelReplyPipeline ?? createChannelReplyPipeline
+      telegramDeps.createChannelMessageReplyPipeline ?? createChannelMessageReplyPipeline
     )({
       cfg,
       agentId: route.agentId,

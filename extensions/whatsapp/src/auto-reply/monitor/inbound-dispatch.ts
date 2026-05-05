@@ -14,13 +14,13 @@ import type { WebInboundMsg } from "../types.js";
 import { formatGroupMembers } from "./group-members.js";
 import type { GroupHistoryEntry } from "./inbound-context.js";
 import {
-  createChannelReplyPipeline,
+  createChannelMessageReplyPipeline,
   dispatchReplyWithBufferedBlockDispatcher,
   finalizeInboundContext,
   getAgentScopedMediaLocalRoots,
   jidToE164,
   logVerbose,
-  resolveChannelSourceReplyDeliveryMode,
+  resolveChannelMessageSourceReplyDeliveryMode,
   resolveChunkMode,
   resolveIdentityNamePrefix,
   resolveInboundLastRouteSessionKey,
@@ -38,7 +38,7 @@ import {
 
 type ReplyLifecycleKind = "tool" | "block" | "final";
 type ChannelReplyOnModelSelected = NonNullable<
-  ReturnType<typeof createChannelReplyPipeline>["onModelSelected"]
+  ReturnType<typeof createChannelMessageReplyPipeline>["onModelSelected"]
 >;
 
 type WhatsAppDispatchPipeline = {
@@ -323,7 +323,7 @@ export async function dispatchWhatsAppBufferedReply(params: {
     typeof params.context.ChatType === "string" ? params.context.ChatType : params.msg.chatType;
   const sourceReplyDeliveryMode =
     sourceReplyChatType === "group" || sourceReplyChatType === "channel"
-      ? resolveChannelSourceReplyDeliveryMode({
+      ? resolveChannelMessageSourceReplyDeliveryMode({
           cfg: params.cfg,
           ctx: {
             ChatType: sourceReplyChatType,

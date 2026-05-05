@@ -6,10 +6,10 @@ import {
 } from "openclaw/plugin-sdk/channel-inbound";
 import {
   deliverInboundReplyWithMessageSendContext,
+  createChannelMessageReplyPipeline,
   deriveDurableFinalDeliveryRequirements,
 } from "openclaw/plugin-sdk/channel-message";
 import { createChannelPairingChallengeIssuer } from "openclaw/plugin-sdk/channel-pairing";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
 import {
   readChannelAllowFromStore,
   upsertChannelPairingRequest,
@@ -406,7 +406,7 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
       );
     }
 
-    const { onModelSelected, ...replyPipeline } = createChannelReplyPipeline({
+    const { onModelSelected, ...replyPipeline } = createChannelMessageReplyPipeline({
       cfg,
       agentId: decision.route.agentId,
       channel: "imessage",

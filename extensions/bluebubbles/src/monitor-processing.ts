@@ -38,7 +38,7 @@ import {
 import {
   DM_GROUP_ACCESS_REASON,
   createChannelPairingController,
-  createChannelReplyPipeline,
+  createChannelMessageReplyPipeline,
   evictOldHistoryKeys,
   evaluateSupplementalContextVisibility,
   logAckFailure,
@@ -1728,42 +1728,43 @@ async function processMessageAfterDedupe(
     }, typingRestartDelayMs);
   };
   try {
-    const { onModelSelected, typingCallbacks, ...replyPipeline } = createChannelReplyPipeline({
-      cfg: config,
-      agentId: route.agentId,
-      channel: "bluebubbles",
-      accountId: account.accountId,
-      typingCallbacks: {
-        onReplyStart: async () => {
-          if (!chatGuidForActions) {
-            return;
-          }
-          if (!baseUrl || !password) {
-            return;
-          }
-          streamingActive = true;
-          clearTypingRestartTimer();
-          try {
-            await sendBlueBubblesTyping(chatGuidForActions, true, {
-              cfg: config,
-              accountId: account.accountId,
-            });
-          } catch (err) {
-            runtime.error?.(`[bluebubbles] typing start failed: ${sanitizeForLog(err)}`);
-          }
+    const { onModelSelected, typingCallbacks, ...replyPipeline } =
+      createChannelMessageReplyPipeline({
+        cfg: config,
+        agentId: route.agentId,
+        channel: "bluebubbles",
+        accountId: account.accountId,
+        typingCallbacks: {
+          onReplyStart: async () => {
+            if (!chatGuidForActions) {
+              return;
+            }
+            if (!baseUrl || !password) {
+              return;
+            }
+            streamingActive = true;
+            clearTypingRestartTimer();
+            try {
+              await sendBlueBubblesTyping(chatGuidForActions, true, {
+                cfg: config,
+                accountId: account.accountId,
+              });
+            } catch (err) {
+              runtime.error?.(`[bluebubbles] typing start failed: ${sanitizeForLog(err)}`);
+            }
+          },
+          onIdle: () => {
+            if (!chatGuidForActions) {
+              return;
+            }
+            if (!baseUrl || !password) {
+              return;
+            }
+            // Intentionally no-op for block streaming. We stop typing in finally
+            // after the run completes to avoid flicker between paragraph blocks.
+          },
         },
-        onIdle: () => {
-          if (!chatGuidForActions) {
-            return;
-          }
-          if (!baseUrl || !password) {
-            return;
-          }
-          // Intentionally no-op for block streaming. We stop typing in finally
-          // after the run completes to avoid flicker between paragraph blocks.
-        },
-      },
-    });
+      });
     await core.channel.turn.run({
       channel: "bluebubbles",
       accountId: account.accountId,

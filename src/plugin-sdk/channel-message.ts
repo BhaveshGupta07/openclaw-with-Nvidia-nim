@@ -15,6 +15,7 @@ export {
 } from "./inbound-reply-dispatch.js";
 export {
   createChannelReplyPipeline as createChannelMessageReplyPipeline,
+  createReplyPrefixContext,
   resolveChannelSourceReplyDeliveryMode as resolveChannelMessageSourceReplyDeliveryMode,
 } from "./channel-reply-pipeline.js";
 
