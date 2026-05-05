@@ -372,15 +372,15 @@ type ReceiveAckPolicy =
   | { kind: "manual" };
 ```
 
-Telegram polling should eventually use a policy that does not advance the
-offset before the inbound message is recorded and any final outbound send intent
-is durable. The current grammy runner/source model advances the fetch offset
-after successful `getUpdates`, and OpenClaw's current update tracker marks
-accepted update ids at begin. Closing the Telegram gap therefore requires a
-custom polling source, a different offset tracker, or an equivalent persistence
-model that can recover accepted-but-not-delivered updates. Webhook platforms may
-need immediate HTTP ack, but they still need inbound dedupe and durable outbound
-send intents because webhooks can redeliver.
+Telegram polling now uses the receive-context ack policy for its persisted
+restart watermark. The tracker still observes grammY updates as they enter the
+middleware chain, but OpenClaw persists only the safe completed update id after
+successful dispatch, leaving failed or lower pending updates replayable after a
+restart. Telegram's upstream `getUpdates` fetch offset is still controlled by
+the polling library, so the remaining deeper cut is a fully durable polling
+source if we need platform-level redelivery beyond OpenClaw's restart
+watermark. Webhook platforms may need immediate HTTP ack, but they still need
+inbound dedupe and durable outbound send intents because webhooks can redeliver.
 
 ## Send Context
 
@@ -1018,9 +1018,10 @@ Integration tests:
 
 Channel tests:
 
-- Telegram topic reply with polling ack delayed until durable intent.
-- Telegram polling recovery for accepted-but-not-delivered updates, either
-  through a custom polling source or an equivalent persisted offset model.
+- Telegram topic reply with polling ack delayed until the receive context's safe
+  completed watermark.
+- Telegram polling recovery for accepted-but-not-delivered updates covered by
+  the persisted safe-completed offset model.
 - Telegram stale preview sends fresh final and cleans up preview.
 - Telegram silent fallback sends every projected fallback payload.
 - Telegram silent fallback durability records the full projected fallback array
@@ -1063,11 +1064,9 @@ Validation:
 
 ## Open Questions
 
-- Exact receive ack default for polling channels that also have platform-level
-  redelivery windows.
-- Whether Telegram should replace the grammy runner source, wrap it with a
-  durable offset store, or keep grammy polling but persist accepted update work
-  before the update id can be skipped.
+- Whether Telegram should eventually replace the grammY runner source with a
+  fully durable polling source that can control platform-level redelivery, not
+  only OpenClaw's persisted restart watermark.
 - Whether durable live preview state should be stored in the same queue record
   as the final send intent or in a sibling live-state store.
 - How long compatibility wrappers stay documented after
