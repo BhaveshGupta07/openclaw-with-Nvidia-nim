@@ -13,7 +13,10 @@ export {
   recordChannelMessageReplyDispatch,
   resolveChannelMessageReplyDispatchCounts,
 } from "./inbound-reply-dispatch.js";
-export { createChannelReplyPipeline as createChannelMessageReplyPipeline } from "./channel-reply-pipeline.js";
+export {
+  createChannelReplyPipeline as createChannelMessageReplyPipeline,
+  resolveChannelSourceReplyDeliveryMode as resolveChannelMessageSourceReplyDeliveryMode,
+} from "./channel-reply-pipeline.js";
 
 export {
   classifyDurableSendRecoveryState,

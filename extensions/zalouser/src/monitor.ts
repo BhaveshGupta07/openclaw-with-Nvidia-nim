@@ -3,12 +3,12 @@ import {
   implicitMentionKindWhen,
   resolveInboundMentionDecision,
 } from "openclaw/plugin-sdk/channel-inbound";
+import { createChannelMessageReplyPipeline } from "openclaw/plugin-sdk/channel-message";
 import { createChannelPairingController } from "openclaw/plugin-sdk/channel-pairing";
 import {
   DM_GROUP_ACCESS_REASON,
   resolveDmGroupAccessWithLists,
 } from "openclaw/plugin-sdk/channel-policy";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
 import { resolveSenderCommandAuthorization } from "openclaw/plugin-sdk/command-auth";
 import type { MarkdownTableMode, OpenClawConfig } from "openclaw/plugin-sdk/config-types";
 import { KeyedAsyncQueue } from "openclaw/plugin-sdk/core";
@@ -652,7 +652,7 @@ async function processMessage(
     },
   });
 
-  const { onModelSelected, ...replyPipeline } = createChannelReplyPipeline({
+  const { onModelSelected, ...replyPipeline } = createChannelMessageReplyPipeline({
     cfg: config,
     agentId: route.agentId,
     channel: "zalouser",

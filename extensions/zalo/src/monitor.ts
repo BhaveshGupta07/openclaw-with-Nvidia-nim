@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { logTypingFailure } from "openclaw/plugin-sdk/channel-feedback";
+import { createChannelMessageReplyPipeline } from "openclaw/plugin-sdk/channel-message";
 import { createChannelPairingController } from "openclaw/plugin-sdk/channel-pairing";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
 import {
   resolveDirectDmAuthorizationOutcome,
   resolveSenderCommandAuthorizationWithRuntime,
@@ -640,7 +640,7 @@ async function processMessageWithPipeline(params: ZaloMessagePipelineParams): Pr
     channel: "zalo",
     accountId: account.accountId,
   });
-  const { onModelSelected, ...replyPipeline } = createChannelReplyPipeline({
+  const { onModelSelected, ...replyPipeline } = createChannelMessageReplyPipeline({
     cfg: config,
     agentId: route.agentId,
     channel: "zalo",

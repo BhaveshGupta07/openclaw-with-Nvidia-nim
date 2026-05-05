@@ -7,11 +7,11 @@ import {
   removeAckReactionAfterReply,
   type StatusReactionAdapter,
 } from "openclaw/plugin-sdk/channel-feedback";
-import { deliverFinalizableLivePreview } from "openclaw/plugin-sdk/channel-message";
 import {
-  createChannelReplyPipeline,
-  resolveChannelSourceReplyDeliveryMode,
-} from "openclaw/plugin-sdk/channel-reply-pipeline";
+  createChannelMessageReplyPipeline,
+  deliverFinalizableLivePreview,
+  resolveChannelMessageSourceReplyDeliveryMode,
+} from "openclaw/plugin-sdk/channel-message";
 import {
   buildChannelProgressDraftLine,
   buildChannelProgressDraftLineForEntry,
@@ -294,7 +294,7 @@ export async function dispatchPreparedSlackMessage(prepared: PreparedSlackMessag
     message,
     replyToMode: prepared.replyToMode,
   });
-  const sourceReplyDeliveryMode = resolveChannelSourceReplyDeliveryMode({
+  const sourceReplyDeliveryMode = resolveChannelMessageSourceReplyDeliveryMode({
     cfg,
     ctx: prepared.ctxPayload,
   });
@@ -369,7 +369,7 @@ export async function dispatchPreparedSlackMessage(prepared: PreparedSlackMessag
 
   const typingTarget = statusThreadTs ? `${message.channel}/${statusThreadTs}` : message.channel;
   const typingReaction = ctx.typingReaction;
-  const { onModelSelected, ...replyPipeline } = createChannelReplyPipeline({
+  const { onModelSelected, ...replyPipeline } = createChannelMessageReplyPipeline({
     cfg,
     agentId: route.agentId,
     channel: "slack",
