@@ -7,6 +7,7 @@ export {
   createLiveMessageState,
   markLiveMessageCancelled,
   markLiveMessageFinalized,
+  markLiveMessagePreviewUpdated,
 } from "./live.js";
 export { createMessageReceiptFromOutboundResults } from "./receipt.js";
 export { createMessageReceiveContext } from "./receive.js";
@@ -17,7 +18,6 @@ export type {
   DurableFinalCapabilityProofMap,
   DurableFinalCapabilityProofResult,
 } from "./contracts.js";
-export type { LiveMessagePhase, LiveMessageState } from "./live.js";
 export type { MessageAckPolicy, MessageReceiveContext } from "./receive.js";
 export type {
   DurableMessageBatchSendParams,
@@ -36,6 +36,8 @@ export type {
   DurableMessageSendIntent,
   MessageSendContext,
   MessageDurabilityPolicy,
+  LiveMessagePhase,
+  LiveMessageState,
   MessageReceipt,
   MessageReceiptPart,
   MessageReceiptPartKind,

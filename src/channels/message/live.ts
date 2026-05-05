@@ -1,13 +1,5 @@
-import type { MessageReceipt, RenderedMessageBatch } from "./types.js";
-
-export type LiveMessagePhase = "idle" | "previewing" | "finalizing" | "finalized" | "cancelled";
-
-export type LiveMessageState<TPayload = unknown> = {
-  phase: LiveMessagePhase;
-  canFinalizeInPlace: boolean;
-  receipt?: MessageReceipt;
-  lastRendered?: RenderedMessageBatch<TPayload>;
-};
+import type { LiveMessageState, MessageReceipt, RenderedMessageBatch } from "./types.js";
+export type { LiveMessagePhase, LiveMessageState } from "./types.js";
 
 export function createLiveMessageState<TPayload = unknown>(params?: {
   receipt?: MessageReceipt;
@@ -31,6 +23,17 @@ export function markLiveMessageFinalized<TPayload>(
     phase: "finalized",
     receipt,
     canFinalizeInPlace: false,
+  };
+}
+
+export function markLiveMessagePreviewUpdated<TPayload>(
+  state: LiveMessageState<TPayload>,
+  rendered: RenderedMessageBatch<TPayload>,
+): LiveMessageState<TPayload> {
+  return {
+    ...state,
+    phase: "previewing",
+    lastRendered: rendered,
   };
 }
 

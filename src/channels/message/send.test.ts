@@ -143,6 +143,79 @@ describe("withDurableMessageSendContext", () => {
     );
   });
 
+  it("supports preview, edit, and delete send-context hooks", async () => {
+    const receipt = {
+      primaryPlatformMessageId: "preview-1",
+      platformMessageIds: ["preview-1"],
+      parts: [],
+      sentAt: 123,
+    };
+    const editedReceipt = {
+      ...receipt,
+      primaryPlatformMessageId: "preview-1-edited",
+      platformMessageIds: ["preview-1-edited"],
+    };
+    const onEditReceipt = vi.fn(async () => editedReceipt);
+    const onDeleteReceipt = vi.fn(async () => undefined);
+
+    await withDurableMessageSendContext(
+      {
+        cfg,
+        channel: "telegram",
+        to: "chat-1",
+        payloads: [{ text: "final" }],
+        preview: {
+          phase: "previewing",
+          canFinalizeInPlace: true,
+          receipt,
+        },
+        onEditReceipt,
+        onDeleteReceipt,
+      },
+      async (ctx) => {
+        const rendered = await ctx.render();
+        const preview = await ctx.previewUpdate(rendered);
+        expect(preview.lastRendered).toBe(rendered);
+
+        await expect(ctx.edit(receipt, rendered)).resolves.toBe(editedReceipt);
+        await ctx.delete(editedReceipt);
+      },
+    );
+
+    expect(onEditReceipt).toHaveBeenCalledWith(
+      receipt,
+      expect.objectContaining({ payloads: [{ text: "final" }] }),
+    );
+    expect(onDeleteReceipt).toHaveBeenCalledWith(editedReceipt);
+  });
+
+  it("fails explicit edit and delete operations without a live adapter", async () => {
+    const receipt = {
+      primaryPlatformMessageId: "preview-1",
+      platformMessageIds: ["preview-1"],
+      parts: [],
+      sentAt: 123,
+    };
+
+    await withDurableMessageSendContext(
+      {
+        cfg,
+        channel: "telegram",
+        to: "chat-1",
+        payloads: [{ text: "final" }],
+      },
+      async (ctx) => {
+        const rendered = await ctx.render();
+        await expect(ctx.edit(receipt, rendered)).rejects.toThrow(
+          "message send context edit is not configured",
+        );
+        await expect(ctx.delete(receipt)).rejects.toThrow(
+          "message send context delete is not configured",
+        );
+      },
+    );
+  });
+
   it("treats no visible outbound result as a committed suppressed send", async () => {
     deliverOutboundPayloads.mockImplementationOnce(async (params: DeliveryIntentCallbackParams) => {
       params.onDeliveryIntent?.({

@@ -73,6 +73,15 @@ export type RenderedMessageBatch<TPayload = unknown> = {
   plan: RenderedMessageBatchPlan;
 };
 
+export type LiveMessagePhase = "idle" | "previewing" | "finalizing" | "finalized" | "cancelled";
+
+export type LiveMessageState<TPayload = unknown> = {
+  phase: LiveMessagePhase;
+  canFinalizeInPlace: boolean;
+  receipt?: MessageReceipt;
+  lastRendered?: RenderedMessageBatch<TPayload>;
+};
+
 export type MessageSendContext<TPayload = unknown, TSendResult = unknown> = {
   id: string;
   channel: string;
@@ -83,8 +92,12 @@ export type MessageSendContext<TPayload = unknown, TSendResult = unknown> = {
   signal: AbortSignal;
   intent?: DurableMessageSendIntent;
   previousReceipt?: MessageReceipt;
+  preview?: LiveMessageState<TPayload>;
   render(): Promise<RenderedMessageBatch<TPayload>>;
+  previewUpdate(rendered: RenderedMessageBatch<TPayload>): Promise<LiveMessageState<TPayload>>;
   send(rendered: RenderedMessageBatch<TPayload>): Promise<TSendResult>;
+  edit(receipt: MessageReceipt, rendered: RenderedMessageBatch<TPayload>): Promise<MessageReceipt>;
+  delete(receipt: MessageReceipt): Promise<void>;
   commit(receipt: MessageReceipt): Promise<void>;
   fail(error: unknown): Promise<void>;
 };

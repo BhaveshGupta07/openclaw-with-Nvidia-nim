@@ -16,6 +16,7 @@ export {
   createDurableMessageStateRecord,
   markLiveMessageCancelled,
   markLiveMessageFinalized,
+  markLiveMessagePreviewUpdated,
   verifyDurableFinalCapabilityProofs,
 } from "../channels/message/index.js";
 export type {

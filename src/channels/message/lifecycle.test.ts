@@ -3,6 +3,7 @@ import {
   createLiveMessageState,
   markLiveMessageCancelled,
   markLiveMessageFinalized,
+  markLiveMessagePreviewUpdated,
 } from "./live.js";
 import { createMessageReceiveContext } from "./receive.js";
 import { classifyDurableSendRecoveryState, createDurableMessageStateRecord } from "./state.js";
@@ -34,6 +35,29 @@ describe("message lifecycle primitives", () => {
       expect.objectContaining({
         phase: "cancelled",
         canFinalizeInPlace: false,
+      }),
+    );
+  });
+
+  it("tracks live preview rendered batch updates", () => {
+    const preview = createLiveMessageState();
+    const rendered = {
+      payloads: [{ text: "draft" }],
+      plan: {
+        payloadCount: 1,
+        textCount: 1,
+        mediaCount: 0,
+        voiceCount: 0,
+        presentationCount: 0,
+        interactiveCount: 0,
+        channelDataCount: 0,
+      },
+    };
+
+    expect(markLiveMessagePreviewUpdated(preview, rendered)).toEqual(
+      expect.objectContaining({
+        phase: "previewing",
+        lastRendered: rendered,
       }),
     );
   });
