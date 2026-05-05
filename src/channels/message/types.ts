@@ -52,9 +52,33 @@ export type MessageReceipt = {
   parts: MessageReceiptPart[];
   threadId?: string;
   replyToId?: string;
+  editToken?: string;
+  deleteToken?: string;
   sentAt: number;
   raw?: readonly MessageReceiptSourceResult[];
 };
+
+export type RenderedMessageBatch<TPayload = unknown> = {
+  payloads: TPayload[];
+};
+
+export type MessageSendContext<TPayload = unknown, TSendResult = unknown> = {
+  id: string;
+  channel: string;
+  to: string;
+  accountId?: string;
+  durability: Exclude<MessageDurabilityPolicy, "disabled">;
+  attempt: number;
+  signal: AbortSignal;
+  intent?: DurableMessageSendIntent;
+  previousReceipt?: MessageReceipt;
+  render(): Promise<RenderedMessageBatch<TPayload>>;
+  send(rendered: RenderedMessageBatch<TPayload>): Promise<TSendResult>;
+  commit(receipt: MessageReceipt): Promise<void>;
+  fail(error: unknown): Promise<void>;
+};
+
+export type ChannelMessageAdapter<TAdapter extends object = Record<string, unknown>> = TAdapter;
 
 export type DurableFinalRequirementExtras = DurableFinalDeliveryRequirementMap;
 

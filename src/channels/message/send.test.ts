@@ -1,0 +1,157 @@
+import { describe, expect, it, vi } from "vitest";
+import type { OpenClawConfig } from "../../config/types.openclaw.js";
+import type { OutboundDeliveryIntent } from "../../infra/outbound/deliver.js";
+
+const deliverOutboundPayloads = vi.hoisted(() => vi.fn());
+
+vi.mock("../../infra/outbound/deliver.js", () => ({
+  deliverOutboundPayloads,
+}));
+
+import { sendDurableMessageBatch, withDurableMessageSendContext } from "./send.js";
+
+type DeliveryIntentCallbackParams = {
+  onDeliveryIntent?: (intent: OutboundDeliveryIntent) => void;
+};
+
+const cfg = {} as OpenClawConfig;
+
+describe("withDurableMessageSendContext", () => {
+  it("renders and sends through a durable send context", async () => {
+    deliverOutboundPayloads.mockImplementationOnce(async (params: DeliveryIntentCallbackParams) => {
+      params.onDeliveryIntent?.({
+        id: "intent-1",
+        channel: "telegram",
+        to: "chat-1",
+        queuePolicy: "required",
+      });
+      return [{ channel: "telegram", messageId: "msg-1" }];
+    });
+
+    const result = await withDurableMessageSendContext(
+      {
+        cfg,
+        channel: "telegram",
+        to: "chat-1",
+        payloads: [{ text: "hello" }],
+        threadId: 42,
+        replyToId: "reply-1",
+      },
+      async (ctx) => {
+        expect(ctx).toEqual(
+          expect.objectContaining({
+            id: "telegram:chat-1",
+            channel: "telegram",
+            to: "chat-1",
+            durability: "required",
+            attempt: 1,
+          }),
+        );
+        const rendered = await ctx.render();
+        const send = await ctx.send(rendered);
+        expect(ctx.intent).toEqual(
+          expect.objectContaining({
+            id: "intent-1",
+            channel: "telegram",
+            to: "chat-1",
+            durability: "required",
+          }),
+        );
+        return send;
+      },
+    );
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        status: "sent",
+        deliveryIntent: expect.objectContaining({ id: "intent-1" }),
+        receipt: expect.objectContaining({
+          platformMessageIds: ["msg-1"],
+          threadId: "42",
+          replyToId: "reply-1",
+        }),
+      }),
+    );
+    expect(deliverOutboundPayloads).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queuePolicy: "required",
+        payloads: [{ text: "hello" }],
+        threadId: 42,
+        replyToId: "reply-1",
+      }),
+    );
+  });
+
+  it("treats no visible outbound result as a committed suppressed send", async () => {
+    deliverOutboundPayloads.mockImplementationOnce(async (params: DeliveryIntentCallbackParams) => {
+      params.onDeliveryIntent?.({
+        id: "intent-2",
+        channel: "whatsapp",
+        to: "jid-1",
+        queuePolicy: "required",
+      });
+      return [];
+    });
+    const onCommitReceipt = vi.fn();
+
+    const result = await sendDurableMessageBatch({
+      cfg,
+      channel: "whatsapp",
+      to: "jid-1",
+      payloads: [{ text: "hidden" }],
+      onCommitReceipt,
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        status: "suppressed",
+        reason: "no_visible_result",
+        deliveryIntent: expect.objectContaining({ id: "intent-2" }),
+      }),
+    );
+    expect(onCommitReceipt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        platformMessageIds: [],
+      }),
+    );
+  });
+
+  it("runs the failure hook when send-context orchestration throws", async () => {
+    const onSendFailure = vi.fn();
+    const error = new Error("boom");
+
+    await expect(
+      withDurableMessageSendContext(
+        {
+          cfg,
+          channel: "telegram",
+          to: "chat-1",
+          payloads: [{ text: "hello" }],
+          onSendFailure,
+        },
+        async () => {
+          throw error;
+        },
+      ),
+    ).rejects.toThrow("boom");
+
+    expect(onSendFailure).toHaveBeenCalledWith(error);
+  });
+
+  it("runs the failure hook when durable outbound delivery fails", async () => {
+    const error = new Error("send failed");
+    deliverOutboundPayloads.mockRejectedValueOnce(error);
+    const onSendFailure = vi.fn();
+
+    const result = await sendDurableMessageBatch({
+      cfg,
+      channel: "telegram",
+      to: "chat-1",
+      payloads: [{ text: "hello" }],
+      onSendFailure,
+    });
+
+    expect(result).toEqual({ status: "failed", error });
+    expect(onSendFailure).toHaveBeenCalledWith(error);
+  });
+});
