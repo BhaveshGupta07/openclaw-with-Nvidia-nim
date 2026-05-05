@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const signalRpcRequestMock = vi.hoisted(() => vi.fn());
 const resolveOutboundAttachmentFromUrlMock = vi.hoisted(() =>
-  vi.fn(async () => ({ path: "/tmp/image.png", contentType: "image/png" })),
+  vi.fn(async (_params: unknown) => ({ path: "/tmp/image.png", contentType: "image/png" })),
 );
 
 vi.mock("./client.js", () => ({

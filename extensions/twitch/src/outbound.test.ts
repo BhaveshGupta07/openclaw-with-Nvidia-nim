@@ -256,7 +256,7 @@ describe("outbound", () => {
 
       expect(result.channel).toBe("twitch");
       expect(result.messageId).toBe("twitch-msg-123");
-      expect(result.receipt.platformMessageIds).toEqual(["twitch-msg-123"]);
+      expect(result.receipt?.platformMessageIds).toEqual(["twitch-msg-123"]);
       expect(sendMessageTwitchInternal).toHaveBeenCalledWith(
         "testchannel",
         "Hello Twitch!",
@@ -432,7 +432,7 @@ describe("outbound", () => {
 
       expect(result.channel).toBe("twitch");
       expect(result.messageId).toBe("media-msg-123");
-      expect(result.receipt.platformMessageIds).toEqual(["media-msg-123"]);
+      expect(result.receipt?.platformMessageIds).toEqual(["media-msg-123"]);
       expect(sendMessageTwitchInternal).toHaveBeenCalledWith(
         expect.anything(),
         "Check this: https://example.com/image.png",
