@@ -15,6 +15,10 @@ vi.mock("../channels/turn/kernel.js", async (importOriginal) => {
 });
 
 import {
+  dispatchChannelMessageReplyWithBase,
+  recordChannelMessageReplyDispatch,
+} from "./channel-message.js";
+import {
   dispatchInboundReplyWithBase,
   hasFinalInboundReplyDispatch,
   hasVisibleInboundReplyDispatch,
@@ -220,5 +224,10 @@ describe("recordInboundSessionAndDispatchReply", () => {
       block: 0,
       final: 0,
     });
+  });
+
+  it("exposes channel-message receive dispatch aliases for new channel code", () => {
+    expect(dispatchChannelMessageReplyWithBase).toBe(dispatchInboundReplyWithBase);
+    expect(recordChannelMessageReplyDispatch).toBe(recordInboundSessionAndDispatchReply);
   });
 });

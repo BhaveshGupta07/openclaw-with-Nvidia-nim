@@ -65,9 +65,9 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | `plugin-sdk/command-gating` | Narrow command authorization gate helpers |
     | `plugin-sdk/channel-policy` | `resolveChannelGroupRequireMention` |
     | `plugin-sdk/channel-lifecycle` | `createAccountStatusSink`, `createChannelRunQueue`, and legacy draft stream lifecycle helpers. New preview finalization code should use `plugin-sdk/channel-message`. |
-    | `plugin-sdk/channel-message` | Message lifecycle contract helpers such as `defineChannelMessageAdapter`, `deliverInboundReplyWithMessageSendContext`, durable-final capability derivation, capability proof helpers for send/receipt/side-effect capabilities, `MessageSendContext`, `MessageReceiveContext`, live-preview finalization, durable recovery state, `RenderedMessageBatch`, and message receipt types |
+    | `plugin-sdk/channel-message` | Message lifecycle contract helpers such as `defineChannelMessageAdapter`, `dispatchChannelMessageReplyWithBase`, `recordChannelMessageReplyDispatch`, `deliverInboundReplyWithMessageSendContext`, durable-final capability derivation, capability proof helpers for send/receipt/side-effect capabilities, `MessageSendContext`, `MessageReceiveContext`, live-preview finalization, durable recovery state, `RenderedMessageBatch`, and message receipt types |
     | `plugin-sdk/inbound-envelope` | Shared inbound route + envelope builder helpers |
-    | `plugin-sdk/inbound-reply-dispatch` | Shared inbound record-and-dispatch helpers, visible/final dispatch predicates, and deprecated `deliverDurableInboundReplyPayload` compatibility for prepared channel dispatchers |
+    | `plugin-sdk/inbound-reply-dispatch` | Legacy shared inbound record-and-dispatch helpers, visible/final dispatch predicates, and deprecated `deliverDurableInboundReplyPayload` compatibility for prepared channel dispatchers. New channel receive/dispatch code should import the lifecycle aliases from `plugin-sdk/channel-message`. |
     | `plugin-sdk/messaging-targets` | Target parsing/matching helpers |
     | `plugin-sdk/outbound-media` | Shared outbound media loading helpers |
     | `plugin-sdk/outbound-send-deps` | Lightweight outbound send dependency lookup for channel adapters |

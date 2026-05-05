@@ -5,6 +5,11 @@ export {
   type DurableInboundReplyDeliveryParams,
   type DurableInboundReplyDeliveryResult,
 } from "../channels/turn/kernel.js";
+export {
+  buildChannelMessageReplyDispatchBase,
+  dispatchChannelMessageReplyWithBase,
+  recordChannelMessageReplyDispatch,
+} from "./inbound-reply-dispatch.js";
 
 export {
   classifyDurableSendRecoveryState,

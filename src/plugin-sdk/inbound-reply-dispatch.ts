@@ -216,3 +216,7 @@ export async function recordInboundSessionAndDispatchReply(params: {
       }),
   });
 }
+
+export const buildChannelMessageReplyDispatchBase = buildInboundReplyDispatchBase;
+export const dispatchChannelMessageReplyWithBase = dispatchInboundReplyWithBase;
+export const recordChannelMessageReplyDispatch = recordInboundSessionAndDispatchReply;
