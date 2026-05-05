@@ -5,6 +5,8 @@ export {
 } from "./contracts.js";
 export {
   createLiveMessageState,
+  createPreviewMessageReceipt,
+  deliverFinalizableLivePreview,
   markLiveMessageCancelled,
   markLiveMessageFinalized,
   markLiveMessagePreviewUpdated,
@@ -24,6 +26,11 @@ export type {
   MessageAckState,
   MessageReceiveContext,
 } from "./receive.js";
+export type {
+  LivePreviewFinalizerDraft,
+  LivePreviewFinalizerResult,
+  LivePreviewFinalizerResultKind,
+} from "./live.js";
 export type {
   DurableMessageBatchSendParams,
   DurableMessageBatchSendResult,

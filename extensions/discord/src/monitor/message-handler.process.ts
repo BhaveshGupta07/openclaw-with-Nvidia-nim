@@ -6,7 +6,7 @@ import {
   logTypingFailure,
   shouldAckReaction as shouldAckReactionGate,
 } from "openclaw/plugin-sdk/channel-feedback";
-import { deliverFinalizableDraftPreview } from "openclaw/plugin-sdk/channel-lifecycle";
+import { deliverFinalizableLivePreview } from "openclaw/plugin-sdk/channel-message";
 import {
   createChannelReplyPipeline,
   resolveChannelSourceReplyDeliveryMode,
@@ -455,7 +455,7 @@ export async function processDiscordMessage(
             Boolean(payload.replyToTag || payload.replyToCurrent) ||
             (typeof finalText === "string" && /\[\[\s*reply_to(?:_current|\s*:)/i.test(finalText));
 
-          const result = await deliverFinalizableDraftPreview({
+          const result = await deliverFinalizableLivePreview({
             kind: info.kind,
             payload,
             draft: {
@@ -527,7 +527,7 @@ export async function processDiscordMessage(
               );
             },
           });
-          if (result !== "normal-skipped") {
+          if (result.kind !== "normal-skipped") {
             return;
           }
         }

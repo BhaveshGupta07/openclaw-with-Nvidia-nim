@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   createLiveMessageState,
+  deliverFinalizableLivePreview,
   markLiveMessageCancelled,
   markLiveMessageFinalized,
   markLiveMessagePreviewUpdated,
@@ -58,6 +59,77 @@ describe("message lifecycle primitives", () => {
       expect.objectContaining({
         phase: "previewing",
         lastRendered: rendered,
+      }),
+    );
+  });
+
+  it("finalizes live previews in place with preview receipts", async () => {
+    const editFinal = vi.fn(async () => undefined);
+    const deliverNormally = vi.fn(async () => undefined);
+    const onPreviewFinalized = vi.fn(async () => undefined);
+
+    const result = await deliverFinalizableLivePreview({
+      kind: "final",
+      payload: { text: "done" },
+      draft: {
+        flush: vi.fn(async () => undefined),
+        id: () => "preview-1",
+        seal: vi.fn(async () => undefined),
+        clear: vi.fn(async () => undefined),
+      },
+      buildFinalEdit: (payload) => ({ text: payload.text }),
+      editFinal,
+      deliverNormally,
+      onPreviewFinalized,
+    });
+
+    expect(result.kind).toBe("preview-finalized");
+    expect(editFinal).toHaveBeenCalledWith("preview-1", { text: "done" });
+    expect(deliverNormally).not.toHaveBeenCalled();
+    expect(result.liveState).toEqual(
+      expect.objectContaining({
+        phase: "finalized",
+        canFinalizeInPlace: false,
+        receipt: expect.objectContaining({
+          primaryPlatformMessageId: "preview-1",
+          platformMessageIds: ["preview-1"],
+        }),
+      }),
+    );
+    expect(onPreviewFinalized).toHaveBeenCalledWith(
+      "preview-1",
+      expect.objectContaining({ primaryPlatformMessageId: "preview-1" }),
+      result.liveState,
+    );
+  });
+
+  it("treats live preview fallback delivery as terminal state", async () => {
+    const discardPending = vi.fn(async () => undefined);
+    const clear = vi.fn(async () => undefined);
+    const deliverNormally = vi.fn(async () => true);
+
+    const result = await deliverFinalizableLivePreview({
+      kind: "final",
+      payload: { text: "with media" },
+      draft: {
+        flush: vi.fn(async () => undefined),
+        id: () => "preview-2",
+        discardPending,
+        clear,
+      },
+      buildFinalEdit: () => undefined,
+      editFinal: vi.fn(async () => undefined),
+      deliverNormally,
+    });
+
+    expect(result.kind).toBe("normal-delivered");
+    expect(discardPending).toHaveBeenCalledTimes(1);
+    expect(deliverNormally).toHaveBeenCalledWith({ text: "with media" });
+    expect(clear).toHaveBeenCalledTimes(1);
+    expect(result.liveState).toEqual(
+      expect.objectContaining({
+        phase: "cancelled",
+        canFinalizeInPlace: false,
       }),
     );
   });

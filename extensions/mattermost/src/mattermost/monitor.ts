@@ -1,4 +1,4 @@
-import { deliverFinalizableDraftPreview } from "openclaw/plugin-sdk/channel-lifecycle";
+import { deliverFinalizableLivePreview } from "openclaw/plugin-sdk/channel-message";
 import { resolveChannelStreamingPreviewToolProgress } from "openclaw/plugin-sdk/channel-streaming";
 import { createClaimableDedupe, type ClaimableDedupe } from "openclaw/plugin-sdk/persistent-dedupe";
 import { isReasoningReplyPayload } from "openclaw/plugin-sdk/reply-payload";
@@ -337,7 +337,7 @@ export async function deliverMattermostReplyWithDraftPreview(
     return;
   }
 
-  await deliverFinalizableDraftPreview({
+  await deliverFinalizableLivePreview({
     kind: params.info.kind,
     payload: params.payload,
     draft: {
