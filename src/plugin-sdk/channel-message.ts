@@ -1,9 +1,15 @@
 import type { ChannelMessageAdapter } from "../channels/message/index.js";
 
 export {
+  classifyDurableSendRecoveryState,
   createMessageReceiptFromOutboundResults,
+  createMessageReceiveContext,
   deriveDurableFinalDeliveryRequirements,
   listDeclaredDurableFinalCapabilities,
+  createLiveMessageState,
+  createDurableMessageStateRecord,
+  markLiveMessageCancelled,
+  markLiveMessageFinalized,
   verifyDurableFinalCapabilityProofs,
 } from "../channels/message/index.js";
 export type {
@@ -17,6 +23,12 @@ export type {
   DurableFinalDeliveryRequirementMap,
   DurableFinalRequirementExtras,
   DurableMessageSendIntent,
+  DurableMessageSendState,
+  DurableMessageStateRecord,
+  LiveMessagePhase,
+  LiveMessageState,
+  MessageAckPolicy,
+  MessageReceiveContext,
   MessageSendContext,
   MessageDurabilityPolicy,
   MessageReceipt,
