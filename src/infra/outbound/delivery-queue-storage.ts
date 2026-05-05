@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { ReplyPayload } from "../../auto-reply/types.js";
+import type { RenderedMessageBatchPlanItem } from "../../channels/message/types.js";
 import { resolveStateDir } from "../../config/paths.js";
 import type { ReplyToMode } from "../../config/types.js";
 import { generateSecureUuid } from "../secure-random.js";
@@ -21,6 +22,7 @@ export type QueuedRenderedMessageBatchPlan = {
   presentationCount: number;
   interactiveCount: number;
   channelDataCount: number;
+  items: readonly RenderedMessageBatchPlanItem[];
 };
 
 export type QueuedDeliveryPayload = {

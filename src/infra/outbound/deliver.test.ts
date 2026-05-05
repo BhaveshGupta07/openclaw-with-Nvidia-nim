@@ -1652,6 +1652,10 @@ describe("deliverOutboundPayloads", () => {
       presentationCount: 0,
       interactiveCount: 0,
       channelDataCount: 0,
+      items: [
+        { index: 0, kinds: ["text"], text: "hello", mediaUrls: [] },
+        { index: 1, kinds: ["media"], mediaUrls: ["file:///tmp/a.png"] },
+      ],
     };
 
     await deliverOutboundPayloads({

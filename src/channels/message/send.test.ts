@@ -54,6 +54,7 @@ describe("withDurableMessageSendContext", () => {
             payloadCount: 1,
             textCount: 1,
             mediaCount: 0,
+            items: [{ index: 0, kinds: ["text"], text: "hello", mediaUrls: [] }],
           }),
         });
         const send = await ctx.send(rendered);
@@ -137,6 +138,18 @@ describe("withDurableMessageSendContext", () => {
             presentationCount: 1,
             interactiveCount: 1,
             channelDataCount: 1,
+            items: [
+              {
+                index: 0,
+                kinds: ["text", "voice", "presentation", "interactive", "channelData"],
+                text: "caption",
+                mediaUrls: ["file:///tmp/a.png", "file:///tmp/b.png"],
+                audioAsVoice: true,
+                presentationBlockCount: 1,
+                hasInteractive: true,
+                hasChannelData: true,
+              },
+            ],
           },
         }),
       }),

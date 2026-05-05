@@ -58,6 +58,26 @@ export type MessageReceipt = {
   raw?: readonly MessageReceiptSourceResult[];
 };
 
+export type RenderedMessageBatchPlanKind =
+  | "text"
+  | "media"
+  | "voice"
+  | "presentation"
+  | "interactive"
+  | "channelData"
+  | "empty";
+
+export type RenderedMessageBatchPlanItem = {
+  index: number;
+  kinds: readonly RenderedMessageBatchPlanKind[];
+  text?: string;
+  mediaUrls: readonly string[];
+  audioAsVoice?: boolean;
+  presentationBlockCount?: number;
+  hasInteractive?: boolean;
+  hasChannelData?: boolean;
+};
+
 export type RenderedMessageBatchPlan = {
   payloadCount: number;
   textCount: number;
@@ -66,6 +86,7 @@ export type RenderedMessageBatchPlan = {
   presentationCount: number;
   interactiveCount: number;
   channelDataCount: number;
+  items: readonly RenderedMessageBatchPlanItem[];
 };
 
 export type RenderedMessageBatch<TPayload = unknown> = {
