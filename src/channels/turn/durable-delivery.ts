@@ -12,6 +12,7 @@ import {
 import { buildOutboundSessionContext } from "../../infra/outbound/session-context.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { sendDurableMessageBatch } from "../message/send.js";
+import { createChannelDeliveryResultFromReceipt } from "./delivery-result.js";
 import type { ChannelDeliveryInfo, ChannelDeliveryResult } from "./types.js";
 
 export type DurableInboundReplyDeliveryOptions = Pick<
@@ -170,15 +171,13 @@ export async function deliverInboundReplyWithMessageSendContext(
     return { status: "failed" as const, error: send.error };
   }
 
-  const messageIds = send.receipt.platformMessageIds;
-  const delivery: ChannelDeliveryResult = {
-    ...(messageIds.length > 0 ? { messageIds } : {}),
+  const delivery = createChannelDeliveryResultFromReceipt({
     receipt: send.receipt,
     threadId: stringifyThreadId(threadId),
     ...(replyToId ? { replyToId } : {}),
     visibleReplySent: send.status === "sent",
     ...(send.deliveryIntent ? { deliveryIntent: toDeliveryIntent(send.deliveryIntent) } : {}),
-  };
+  });
   if (send.status === "suppressed") {
     return { status: "handled_no_send", reason: "no_visible_result", delivery };
   }

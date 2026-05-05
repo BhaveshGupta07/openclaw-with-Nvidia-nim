@@ -122,6 +122,19 @@ function acceptedSendResult(kind: "media" | "text", id: string): WhatsAppSendRes
   };
 }
 
+function testReceipt(messageIds: string[]) {
+  return {
+    ...(messageIds[0] ? { primaryPlatformMessageId: messageIds[0] } : {}),
+    platformMessageIds: messageIds,
+    parts: messageIds.map((messageId, index) => ({
+      platformMessageId: messageId,
+      kind: "text" as const,
+      index,
+    })),
+    sentAt: 123,
+  };
+}
+
 function makeRoute(overrides: Partial<TestRoute> = {}): TestRoute {
   return {
     agentId: "main",
@@ -209,6 +222,7 @@ function acceptedDeliveryResult() {
       },
     ],
     messageIds: ["wa-sent-1"],
+    receipt: testReceipt(["wa-sent-1"]),
     providerAccepted: true,
   };
 }
@@ -217,6 +231,7 @@ function unacceptedDeliveryResult() {
   return {
     results: [],
     messageIds: [],
+    receipt: testReceipt([]),
     providerAccepted: false,
   };
 }

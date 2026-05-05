@@ -1,3 +1,8 @@
+import {
+  createMessageReceiptFromOutboundResults,
+  type MessageReceipt,
+  type MessageReceiptSourceResult,
+} from "openclaw/plugin-sdk/channel-message";
 import type { MarkdownTableMode } from "openclaw/plugin-sdk/config-types";
 import { chunkMarkdownTextWithMode, type ChunkMode } from "openclaw/plugin-sdk/reply-chunking";
 import type { ReplyPayload } from "openclaw/plugin-sdk/reply-chunking";
@@ -27,8 +32,43 @@ import { elide } from "./util.js";
 export type WhatsAppReplyDeliveryResult = {
   results: WhatsAppSendResult[];
   messageIds: string[];
+  receipt: MessageReceipt;
   providerAccepted: boolean;
 };
+
+function resolveWhatsAppReceiptKind(
+  results: readonly WhatsAppSendResult[],
+): Parameters<typeof createMessageReceiptFromOutboundResults>[0]["kind"] {
+  if (results.length > 0 && results.every((result) => result.kind === "text")) {
+    return "text";
+  }
+  if (results.length > 0 && results.every((result) => result.kind === "media")) {
+    return "media";
+  }
+  return "unknown";
+}
+
+function createWhatsAppReplyDeliveryReceipt(
+  results: readonly WhatsAppSendResult[],
+): MessageReceipt {
+  const receiptResultsById = new Map<string, MessageReceiptSourceResult>();
+  for (const result of results) {
+    for (const messageId of result.messageIds) {
+      receiptResultsById.set(messageId, {
+        channel: "whatsapp",
+        messageId,
+        meta: {
+          kind: result.kind,
+          providerAccepted: result.providerAccepted,
+        },
+      });
+    }
+  }
+  return createMessageReceiptFromOutboundResults({
+    results: [...receiptResultsById.values()],
+    kind: resolveWhatsAppReceiptKind(results),
+  });
+}
 
 export async function deliverWebReply(params: {
   replyResult: ReplyPayload;
@@ -59,6 +99,7 @@ export async function deliverWebReply(params: {
     return {
       results: sendResults,
       messageIds,
+      receipt: createWhatsAppReplyDeliveryReceipt(sendResults),
       providerAccepted: sendResults.some((result) => result.providerAccepted),
     };
   };

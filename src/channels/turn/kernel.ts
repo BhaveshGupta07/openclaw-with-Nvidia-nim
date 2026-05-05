@@ -34,6 +34,7 @@ import type {
   RunChannelTurnParams,
   RunResolvedChannelTurnParams,
 } from "./types.js";
+export { createChannelDeliveryResultFromReceipt } from "./delivery-result.js";
 export {
   EMPTY_CHANNEL_TURN_DISPATCH_COUNTS,
   hasFinalChannelTurnDispatch,

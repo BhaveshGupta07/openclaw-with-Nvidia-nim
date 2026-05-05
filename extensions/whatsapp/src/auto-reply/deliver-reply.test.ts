@@ -197,6 +197,18 @@ describe("deliverWebReply", () => {
     expect(replyLogger.info).toHaveBeenCalledWith(expect.any(Object), "auto-reply sent (text)");
     expect(delivery.providerAccepted).toBe(true);
     expect(delivery.messageIds).toEqual(["reply-sent-1"]);
+    expect(delivery.receipt).toEqual(
+      expect.objectContaining({
+        primaryPlatformMessageId: "reply-sent-1",
+        platformMessageIds: ["reply-sent-1"],
+      }),
+    );
+    expect(delivery.receipt.parts).toEqual([
+      expect.objectContaining({
+        platformMessageId: "reply-sent-1",
+        kind: "text",
+      }),
+    ]);
   });
 
   it("reports text replies that Baileys did not accept", async () => {
@@ -215,6 +227,10 @@ describe("deliverWebReply", () => {
     expect(msg.reply).toHaveBeenCalledTimes(1);
     expect(delivery).toMatchObject({
       messageIds: [],
+      receipt: expect.objectContaining({
+        platformMessageIds: [],
+        parts: [],
+      }),
       providerAccepted: false,
     });
     expect(replyLogger.warn).toHaveBeenCalledWith(
