@@ -52,7 +52,7 @@ describe("message lifecycle primitives", () => {
         presentationCount: 0,
         interactiveCount: 0,
         channelDataCount: 0,
-        items: [{ index: 0, kinds: ["text"], text: "draft", mediaUrls: [] }],
+        items: [{ index: 0, kinds: ["text"] as const, text: "draft", mediaUrls: [] }],
       },
     };
 

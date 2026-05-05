@@ -1653,8 +1653,8 @@ describe("deliverOutboundPayloads", () => {
       interactiveCount: 0,
       channelDataCount: 0,
       items: [
-        { index: 0, kinds: ["text"], text: "hello", mediaUrls: [] },
-        { index: 1, kinds: ["media"], mediaUrls: ["file:///tmp/a.png"] },
+        { index: 0, kinds: ["text"] as const, text: "hello", mediaUrls: [] },
+        { index: 1, kinds: ["media"] as const, mediaUrls: ["file:///tmp/a.png"] },
       ],
     };
 
