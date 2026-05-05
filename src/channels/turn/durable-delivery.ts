@@ -3,7 +3,6 @@ import type { FinalizedMsgContext } from "../../auto-reply/templating.js";
 import type { OpenClawConfig } from "../../config/types.openclaw.js";
 import { normalizeDeliverableOutboundChannel } from "../../infra/outbound/channel-resolution.js";
 import {
-  deliverOutboundPayloads,
   type DeliverOutboundPayloadsParams,
   type DurableFinalDeliveryRequirement,
   type DurableFinalDeliveryRequirements,
@@ -12,6 +11,7 @@ import {
 } from "../../infra/outbound/deliver.js";
 import { buildOutboundSessionContext } from "../../infra/outbound/session-context.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
+import { sendDurableMessageBatch } from "../message/send.js";
 import type { ChannelDeliveryInfo, ChannelDeliveryResult } from "./types.js";
 
 export type DurableInboundReplyDeliveryOptions = Pick<
@@ -75,10 +75,6 @@ function stringifyThreadId(value: string | number | null | undefined): string | 
   return value == null ? undefined : String(value);
 }
 
-function collectMessageIds(results: Awaited<ReturnType<typeof deliverOutboundPayloads>>): string[] {
-  return results.map((result) => result.messageId).filter((id) => id.length > 0);
-}
-
 function toDeliveryIntent(intent: OutboundDeliveryIntent): ChannelDeliveryResult["deliveryIntent"] {
   return {
     id: intent.id,
@@ -140,7 +136,6 @@ export async function deliverDurableInboundReplyPayload(
 
   const replyToId = resolveReplyToId(params);
   const threadId = resolveThreadId(params);
-  let deliveryIntent: ChannelDeliveryResult["deliveryIntent"];
   const session = buildOutboundSessionContext({
     cfg: params.cfg,
     sessionKey: params.ctxPayload.SessionKey,
@@ -154,42 +149,36 @@ export async function deliverDurableInboundReplyPayload(
     requesterSenderE164: params.ctxPayload.SenderE164,
   });
 
-  let results: Awaited<ReturnType<typeof deliverOutboundPayloads>>;
-  try {
-    results = await deliverOutboundPayloads({
-      cfg: params.cfg,
-      channel,
-      to,
-      accountId: params.accountId,
-      payloads: [params.payload],
-      threadId,
-      replyToId,
-      replyToMode: params.replyToMode,
-      formatting: params.formatting,
-      identity: params.identity,
-      deps: params.deps,
-      mediaAccess: params.mediaAccess,
-      silent: params.silent,
-      session,
-      gatewayClientScopes: params.ctxPayload.GatewayClientScopes,
-      queuePolicy: "required",
-      onDeliveryIntent: (intent) => {
-        deliveryIntent = toDeliveryIntent(intent);
-      },
-    });
-  } catch (err: unknown) {
-    return { status: "failed" as const, error: err };
+  const send = await sendDurableMessageBatch({
+    cfg: params.cfg,
+    channel,
+    to,
+    accountId: params.accountId,
+    payloads: [params.payload],
+    threadId,
+    replyToId,
+    replyToMode: params.replyToMode,
+    formatting: params.formatting,
+    identity: params.identity,
+    deps: params.deps,
+    mediaAccess: params.mediaAccess,
+    silent: params.silent,
+    session,
+    gatewayClientScopes: params.ctxPayload.GatewayClientScopes,
+  });
+  if (send.status === "failed") {
+    return { status: "failed" as const, error: send.error };
   }
 
-  const messageIds = collectMessageIds(results);
+  const messageIds = send.receipt.platformMessageIds;
   const delivery: ChannelDeliveryResult = {
     ...(messageIds.length > 0 ? { messageIds } : {}),
     threadId: stringifyThreadId(threadId),
     ...(replyToId ? { replyToId } : {}),
-    visibleReplySent: results.length > 0,
-    ...(deliveryIntent ? { deliveryIntent } : {}),
+    visibleReplySent: send.status === "sent",
+    ...(send.deliveryIntent ? { deliveryIntent: toDeliveryIntent(send.deliveryIntent) } : {}),
   };
-  if (results.length === 0) {
+  if (send.status === "suppressed") {
     return { status: "handled_no_send", reason: "no_visible_result", delivery };
   }
   return { status: "handled_visible", delivery };

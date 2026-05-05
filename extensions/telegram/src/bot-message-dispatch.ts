@@ -5,6 +5,7 @@ import {
   logTypingFailure,
   removeAckReactionAfterReply,
 } from "openclaw/plugin-sdk/channel-feedback";
+import { deriveDurableFinalDeliveryRequirements } from "openclaw/plugin-sdk/channel-message";
 import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
 import {
   createChannelProgressDraftGate,
@@ -853,15 +854,16 @@ export const dispatchTelegramMessage = async ({
             chunkMode,
           },
           silent,
-          requiredCapabilities: {
-            text: true,
-            payload: true,
-            replyTo: deliverablePayload.replyToId != null,
-            thread: threadSpec.id != null,
+          requiredCapabilities: deriveDurableFinalDeliveryRequirements({
+            payload: deliverablePayload,
+            replyToId: deliverablePayload.replyToId,
+            threadId: threadSpec.id,
             silent,
-            nativeQuote: usesNativeTelegramQuote(deliverablePayload),
-            messageSendingHooks: true,
-          },
+            payloadTransport: true,
+            extraCapabilities: {
+              nativeQuote: usesNativeTelegramQuote(deliverablePayload),
+            },
+          }),
         });
         if (durable.status === "failed") {
           throw durable.error;

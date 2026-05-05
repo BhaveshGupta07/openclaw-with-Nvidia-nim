@@ -65,6 +65,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | `plugin-sdk/command-gating` | Narrow command authorization gate helpers |
     | `plugin-sdk/channel-policy` | `resolveChannelGroupRequireMention` |
     | `plugin-sdk/channel-lifecycle` | `createAccountStatusSink`, `createChannelRunQueue`, draft stream lifecycle/finalization helpers |
+    | `plugin-sdk/channel-message` | Message lifecycle contract helpers such as durable-final capability derivation and message receipt types |
     | `plugin-sdk/inbound-envelope` | Shared inbound route + envelope builder helpers |
     | `plugin-sdk/inbound-reply-dispatch` | Shared inbound record-and-dispatch helpers, visible/final dispatch predicates, and `deliverDurableInboundReplyPayload` for prepared channel dispatchers |
     | `plugin-sdk/messaging-targets` | Target parsing/matching helpers |

@@ -1,3 +1,4 @@
+import { deriveDurableFinalDeliveryRequirements } from "openclaw/plugin-sdk/channel-message";
 import {
   deliverDurableInboundReplyPayload,
   hasVisibleInboundReplyDispatch,
@@ -380,11 +381,10 @@ export async function dispatchWhatsAppBufferedReply(params: {
               tableMode,
               chunkMode,
             },
-            requiredCapabilities: {
-              text: true,
-              replyTo: normalizedDeliveryPayload.replyToId != null,
-              messageSendingHooks: true,
-            },
+            requiredCapabilities: deriveDurableFinalDeliveryRequirements({
+              payload: normalizedDeliveryPayload,
+              replyToId: normalizedDeliveryPayload.replyToId,
+            }),
           });
           if (durable.status === "failed") {
             throw durable.error;
