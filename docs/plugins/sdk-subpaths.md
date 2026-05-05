@@ -56,7 +56,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | `plugin-sdk/account-resolution` | Account lookup + default-fallback helpers |
     | `plugin-sdk/account-helpers` | Narrow account-list/account-action helpers |
     | `plugin-sdk/channel-pairing` | `createChannelPairingController` |
-    | `plugin-sdk/channel-reply-pipeline` | `createChannelReplyPipeline`, `resolveChannelSourceReplyDeliveryMode` |
+    | `plugin-sdk/channel-reply-pipeline` | Legacy reply pipeline helpers. New channel reply pipeline code should use `createChannelMessageReplyPipeline` from `plugin-sdk/channel-message`. |
     | `plugin-sdk/channel-config-helpers` | `createHybridChannelConfigAdapter`, `resolveChannelDmAccess`, `resolveChannelDmAllowFrom`, `resolveChannelDmPolicy`, `normalizeChannelDmPolicy`, `normalizeLegacyDmAliases` |
     | `plugin-sdk/channel-config-schema` | Shared channel config schema primitives plus Zod and direct JSON/TypeBox builders |
     | `plugin-sdk/bundled-channel-config-schema` | Bundled OpenClaw channel config schemas for maintained bundled plugins only |
@@ -65,7 +65,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | `plugin-sdk/command-gating` | Narrow command authorization gate helpers |
     | `plugin-sdk/channel-policy` | `resolveChannelGroupRequireMention` |
     | `plugin-sdk/channel-lifecycle` | `createAccountStatusSink`, `createChannelRunQueue`, and legacy draft stream lifecycle helpers. New preview finalization code should use `plugin-sdk/channel-message`. |
-    | `plugin-sdk/channel-message` | Message lifecycle contract helpers such as `defineChannelMessageAdapter`, `dispatchChannelMessageReplyWithBase`, `recordChannelMessageReplyDispatch`, `deliverInboundReplyWithMessageSendContext`, durable-final capability derivation, capability proof helpers for send/receipt/side-effect capabilities, `MessageSendContext`, `MessageReceiveContext`, live-preview finalization, durable recovery state, `RenderedMessageBatch`, and message receipt types |
+    | `plugin-sdk/channel-message` | Message lifecycle contract helpers such as `defineChannelMessageAdapter`, `createChannelMessageReplyPipeline`, `dispatchChannelMessageReplyWithBase`, `recordChannelMessageReplyDispatch`, `deliverInboundReplyWithMessageSendContext`, durable-final capability derivation, capability proof helpers for send/receipt/side-effect capabilities, `MessageSendContext`, `MessageReceiveContext`, live-preview finalization, durable recovery state, `RenderedMessageBatch`, and message receipt types |
     | `plugin-sdk/inbound-envelope` | Shared inbound route + envelope builder helpers |
     | `plugin-sdk/inbound-reply-dispatch` | Legacy shared inbound record-and-dispatch helpers, visible/final dispatch predicates, and deprecated `deliverDurableInboundReplyPayload` compatibility for prepared channel dispatchers. New channel receive/dispatch code should import the lifecycle aliases from `plugin-sdk/channel-message`. |
     | `plugin-sdk/messaging-targets` | Target parsing/matching helpers |

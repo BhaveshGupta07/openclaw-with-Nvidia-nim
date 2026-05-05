@@ -219,4 +219,7 @@ export async function recordInboundSessionAndDispatchReply(params: {
 
 export const buildChannelMessageReplyDispatchBase = buildInboundReplyDispatchBase;
 export const dispatchChannelMessageReplyWithBase = dispatchInboundReplyWithBase;
+export const hasFinalChannelMessageReplyDispatch = hasFinalChannelTurnDispatch;
+export const hasVisibleChannelMessageReplyDispatch = hasVisibleChannelTurnDispatch;
 export const recordChannelMessageReplyDispatch = recordInboundSessionAndDispatchReply;
+export const resolveChannelMessageReplyDispatchCounts = resolveChannelTurnDispatchCounts;

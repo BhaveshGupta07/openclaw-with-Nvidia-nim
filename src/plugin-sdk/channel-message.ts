@@ -8,8 +8,12 @@ export {
 export {
   buildChannelMessageReplyDispatchBase,
   dispatchChannelMessageReplyWithBase,
+  hasFinalChannelMessageReplyDispatch,
+  hasVisibleChannelMessageReplyDispatch,
   recordChannelMessageReplyDispatch,
+  resolveChannelMessageReplyDispatchCounts,
 } from "./inbound-reply-dispatch.js";
+export { createChannelReplyPipeline as createChannelMessageReplyPipeline } from "./channel-reply-pipeline.js";
 
 export {
   classifyDurableSendRecoveryState,

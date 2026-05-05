@@ -1,7 +1,7 @@
 import { normalizeOptionalLowercaseString } from "openclaw/plugin-sdk/text-runtime";
 import type { OpenClawConfig } from "../runtime-api.js";
 import {
-  createChannelReplyPipeline,
+  createChannelMessageReplyPipeline,
   resolveInboundRouteEnvelopeBuilderWithRuntime,
   resolveWebhookPath,
 } from "../runtime-api.js";
@@ -281,7 +281,7 @@ async function processMessageWithPipeline(params: {
     }
   }
 
-  const { onModelSelected, ...replyPipeline } = createChannelReplyPipeline({
+  const { onModelSelected, ...replyPipeline } = createChannelMessageReplyPipeline({
     cfg: config,
     agentId: route.agentId,
     channel: "googlechat",

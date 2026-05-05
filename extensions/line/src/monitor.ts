@@ -1,7 +1,9 @@
 import type { webhook } from "@line/bot-sdk";
-import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
+import {
+  createChannelMessageReplyPipeline,
+  hasFinalChannelMessageReplyDispatch,
+} from "openclaw/plugin-sdk/channel-message";
 import type { OpenClawConfig } from "openclaw/plugin-sdk/config-types";
-import { hasFinalInboundReplyDispatch } from "openclaw/plugin-sdk/inbound-reply-dispatch";
 import { chunkMarkdownText } from "openclaw/plugin-sdk/reply-runtime";
 import {
   danger,
@@ -223,7 +225,7 @@ export async function monitorLineProvider(
       try {
         const textLimit = 5000;
         let replyTokenUsed = false;
-        const { onModelSelected, ...replyPipeline } = createChannelReplyPipeline({
+        const { onModelSelected, ...replyPipeline } = createChannelMessageReplyPipeline({
           cfg: config,
           agentId: route.agentId,
           channel: "line",
@@ -317,7 +319,7 @@ export async function monitorLineProvider(
           },
         });
         const dispatchResult = turnResult.dispatched ? turnResult.dispatchResult : undefined;
-        if (!hasFinalInboundReplyDispatch(dispatchResult)) {
+        if (!hasFinalChannelMessageReplyDispatch(dispatchResult)) {
           logVerbose(`line: no response generated for message from ${ctxPayload.From}`);
         }
       } catch (err) {
