@@ -17,6 +17,7 @@ export {
   markLiveMessageCancelled,
   markLiveMessageFinalized,
   markLiveMessagePreviewUpdated,
+  shouldAckMessageAfterStage,
   verifyDurableFinalCapabilityProofs,
 } from "../channels/message/index.js";
 export type {
@@ -35,6 +36,8 @@ export type {
   LiveMessagePhase,
   LiveMessageState,
   MessageAckPolicy,
+  MessageAckStage,
+  MessageAckState,
   MessageReceiveContext,
   MessageSendContext,
   MessageDurabilityPolicy,

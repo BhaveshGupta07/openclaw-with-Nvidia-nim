@@ -1,11 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createLiveMessageState,
   markLiveMessageCancelled,
   markLiveMessageFinalized,
   markLiveMessagePreviewUpdated,
 } from "./live.js";
-import { createMessageReceiveContext } from "./receive.js";
+import { createMessageReceiveContext, shouldAckMessageAfterStage } from "./receive.js";
 import { classifyDurableSendRecoveryState, createDurableMessageStateRecord } from "./state.js";
 
 describe("message lifecycle primitives", () => {
@@ -76,9 +76,45 @@ describe("message lifecycle primitives", () => {
         channel: "telegram",
         message: { text: "hello" },
         ackPolicy: "after_receive_record",
+        ackState: "pending",
         receivedAt: 123,
       }),
     );
+  });
+
+  it("acks and nacks receive contexts through explicit hooks", async () => {
+    const onAck = vi.fn(async () => undefined);
+    const onNack = vi.fn(async () => undefined);
+    const ctx = createMessageReceiveContext({
+      id: "rx-ack",
+      channel: "telegram",
+      message: { text: "hello" },
+      ackPolicy: "after_durable_send",
+      onAck,
+      onNack,
+    });
+
+    expect(ctx.shouldAckAfter("receive_record")).toBe(false);
+    expect(ctx.shouldAckAfter("durable_send")).toBe(true);
+
+    await ctx.ack();
+    await ctx.ack();
+    expect(onAck).toHaveBeenCalledTimes(1);
+    expect(ctx.ackState).toBe("acked");
+    expect(ctx.ackedAt).toEqual(expect.any(Number));
+
+    await ctx.nack(new Error("offset failed"));
+    expect(onNack).toHaveBeenCalledWith(expect.any(Error));
+    expect(ctx.ackState).toBe("nacked");
+    expect(ctx.nackErrorMessage).toBe("offset failed");
+  });
+
+  it("maps ack policies to lifecycle stages", () => {
+    expect(shouldAckMessageAfterStage("after_receive_record", "receive_record")).toBe(true);
+    expect(shouldAckMessageAfterStage("after_receive_record", "agent_dispatch")).toBe(false);
+    expect(shouldAckMessageAfterStage("after_agent_dispatch", "agent_dispatch")).toBe(true);
+    expect(shouldAckMessageAfterStage("after_durable_send", "durable_send")).toBe(true);
+    expect(shouldAckMessageAfterStage("manual", "manual")).toBe(false);
   });
 
   it("classifies unknown-after-send recovery only after platform send may have started", () => {

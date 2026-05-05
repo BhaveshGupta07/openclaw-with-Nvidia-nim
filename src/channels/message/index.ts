@@ -10,7 +10,7 @@ export {
   markLiveMessagePreviewUpdated,
 } from "./live.js";
 export { createMessageReceiptFromOutboundResults } from "./receipt.js";
-export { createMessageReceiveContext } from "./receive.js";
+export { createMessageReceiveContext, shouldAckMessageAfterStage } from "./receive.js";
 export { sendDurableMessageBatch, withDurableMessageSendContext } from "./send.js";
 export { classifyDurableSendRecoveryState, createDurableMessageStateRecord } from "./state.js";
 export type {
@@ -18,7 +18,12 @@ export type {
   DurableFinalCapabilityProofMap,
   DurableFinalCapabilityProofResult,
 } from "./contracts.js";
-export type { MessageAckPolicy, MessageReceiveContext } from "./receive.js";
+export type {
+  MessageAckPolicy,
+  MessageAckStage,
+  MessageAckState,
+  MessageReceiveContext,
+} from "./receive.js";
 export type {
   DurableMessageBatchSendParams,
   DurableMessageBatchSendResult,
