@@ -7,7 +7,7 @@ import {
   removeAckReactionAfterReply,
   type StatusReactionAdapter,
 } from "openclaw/plugin-sdk/channel-feedback";
-import { deliverFinalizableDraftPreview } from "openclaw/plugin-sdk/channel-lifecycle";
+import { deliverFinalizableLivePreview } from "openclaw/plugin-sdk/channel-message";
 import {
   createChannelReplyPipeline,
   resolveChannelSourceReplyDeliveryMode,
@@ -783,7 +783,7 @@ export async function dispatchPreparedSlackMessage(prepared: PreparedSlackMessag
       const slackBlocks = readSlackReplyBlocks(payload);
       const trimmedFinalText = reply.trimmedText;
 
-      const result = await deliverFinalizableDraftPreview({
+      const result = await deliverFinalizableLivePreview({
         kind: info.kind,
         payload,
         draft: draftStream
@@ -848,7 +848,7 @@ export async function dispatchPreparedSlackMessage(prepared: PreparedSlackMessag
         },
       });
 
-      if (result === "preview-finalized") {
+      if (result.kind === "preview-finalized") {
         return;
       }
     },
