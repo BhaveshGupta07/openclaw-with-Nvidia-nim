@@ -159,14 +159,24 @@ function expectSendPayloadWith(
   ).toBe(true);
 }
 
-function expectPreviewFinalized(
-  result: LaneDeliveryResult,
-): Extract<LaneDeliveryResult, { kind: "preview-finalized" }>["delivery"] {
+function expectPreviewFinalized(result: LaneDeliveryResult): {
+  content: string;
+  messageId: number;
+} {
   expect(result.kind).toBe("preview-finalized");
   if (result.kind !== "preview-finalized") {
     throw new Error(`expected preview-finalized, got ${result.kind}`);
   }
-  return result.delivery;
+  expect(result.delivery.receipt).toEqual(
+    expect.objectContaining({
+      primaryPlatformMessageId: String(result.delivery.messageId),
+      platformMessageIds: [String(result.delivery.messageId)],
+    }),
+  );
+  return {
+    content: result.delivery.content,
+    messageId: result.delivery.messageId,
+  };
 }
 
 describe("createLaneTextDeliverer", () => {

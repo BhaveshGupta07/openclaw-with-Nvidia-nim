@@ -1,3 +1,7 @@
+import {
+  createPreviewMessageReceipt,
+  type MessageReceipt,
+} from "openclaw/plugin-sdk/channel-message";
 import { resolveSendableOutboundReplyParts } from "openclaw/plugin-sdk/reply-payload";
 import type { ReplyPayload } from "openclaw/plugin-sdk/reply-runtime";
 import type { TelegramInlineButtons } from "./button-types.js";
@@ -67,12 +71,19 @@ export type LanePreviewLifecycle = "transient" | "complete";
 export type LaneDeliveryResult =
   | {
       kind: "preview-finalized";
-      delivery: {
-        content: string;
-        messageId?: number;
-      };
+      delivery: LanePreviewFinalizedDelivery;
     }
   | { kind: "preview-retained" | "preview-updated" | "sent" | "skipped" };
+
+type LanePreviewFinalizedDelivery = {
+  content: string;
+  messageId: number;
+  receipt: MessageReceipt;
+};
+
+type LanePreviewFinalizedDeliveryInput = Omit<LanePreviewFinalizedDelivery, "receipt"> & {
+  receipt?: MessageReceipt;
+};
 
 type CreateLaneTextDelivererParams = {
   lanes: Record<LaneName, DraftLaneState>;
@@ -156,10 +167,17 @@ type PreviewTargetResolution = {
 
 function result(
   kind: LaneDeliveryResult["kind"],
-  delivery?: Extract<LaneDeliveryResult, { kind: "preview-finalized" }>["delivery"],
+  delivery?: LanePreviewFinalizedDeliveryInput,
 ): LaneDeliveryResult {
   if (kind === "preview-finalized") {
-    return { kind, delivery: delivery! };
+    const finalized = delivery!;
+    return {
+      kind,
+      delivery: {
+        ...finalized,
+        receipt: finalized.receipt ?? createPreviewMessageReceipt({ id: finalized.messageId }),
+      },
+    };
   }
   return { kind };
 }
