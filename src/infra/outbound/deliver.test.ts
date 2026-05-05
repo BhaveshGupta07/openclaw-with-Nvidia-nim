@@ -1642,6 +1642,34 @@ describe("deliverOutboundPayloads", () => {
     );
   });
 
+  it("persists rendered batch plans with queued deliveries", async () => {
+    const sendMatrix = vi.fn().mockResolvedValue({ messageId: "m-plan", roomId: "!room:example" });
+    const renderedBatchPlan = {
+      payloadCount: 2,
+      textCount: 1,
+      mediaCount: 1,
+      voiceCount: 0,
+      presentationCount: 0,
+      interactiveCount: 0,
+      channelDataCount: 0,
+    };
+
+    await deliverOutboundPayloads({
+      cfg: matrixChunkConfig,
+      channel: "matrix",
+      to: "!room:example",
+      payloads: [{ text: "hello" }, { mediaUrl: "file:///tmp/a.png" }],
+      deps: { matrix: sendMatrix },
+      renderedBatchPlan,
+    });
+
+    expect(queueMocks.enqueueDelivery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        renderedBatchPlan,
+      }),
+    );
+  });
+
   it("applies silent-reply rewrite policy from the outbound session", async () => {
     const sendMatrix = vi.fn().mockResolvedValue({ messageId: "m-silent", roomId: "!room" });
     const cfg: OpenClawConfig = {

@@ -164,6 +164,7 @@ export async function withDurableMessageSendContext<T>(
         const results = await deliverOutboundPayloads({
           ...deliveryParams,
           payloads: rendered.payloads,
+          renderedBatchPlan: rendered.plan,
           queuePolicy: "required",
           onDeliveryIntent: (intent) => {
             deliveryIntent = intent;

@@ -116,6 +116,7 @@ function buildRecoveryDeliverParams(entry: QueuedDelivery, cfg: OpenClawConfig) 
     to: entry.to,
     accountId: entry.accountId,
     payloads: entry.payloads,
+    renderedBatchPlan: entry.renderedBatchPlan,
     threadId: entry.threadId,
     replyToId: entry.replyToId,
     replyToMode: entry.replyToMode,

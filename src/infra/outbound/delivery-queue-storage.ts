@@ -13,6 +13,16 @@ import type { OutboundChannel } from "./targets.js";
 const QUEUE_DIRNAME = "delivery-queue";
 const FAILED_DIRNAME = "failed";
 
+export type QueuedRenderedMessageBatchPlan = {
+  payloadCount: number;
+  textCount: number;
+  mediaCount: number;
+  voiceCount: number;
+  presentationCount: number;
+  interactiveCount: number;
+  channelDataCount: number;
+};
+
 export type QueuedDeliveryPayload = {
   channel: Exclude<OutboundChannel, "none">;
   to: string;
@@ -23,6 +33,8 @@ export type QueuedDeliveryPayload = {
    * should produce the same result on replay.
    */
   payloads: ReplyPayload[];
+  /** Replayable projection summary captured when the durable send intent is created. */
+  renderedBatchPlan?: QueuedRenderedMessageBatchPlan;
   threadId?: string | number | null;
   replyToId?: string | null;
   replyToMode?: ReplyToMode;
@@ -146,6 +158,7 @@ export async function enqueueDelivery(
     to: params.to,
     accountId: params.accountId,
     payloads: params.payloads,
+    renderedBatchPlan: params.renderedBatchPlan,
     threadId: params.threadId,
     replyToId: params.replyToId,
     replyToMode: params.replyToMode,

@@ -38,6 +38,7 @@ import {
   ackDelivery,
   enqueueDelivery,
   failDelivery,
+  type QueuedRenderedMessageBatchPlan,
   withActiveDeliveryClaim,
 } from "./delivery-queue.js";
 import type { OutboundDeliveryFormattingOptions } from "./formatting.js";
@@ -433,6 +434,7 @@ export type DeliverOutboundPayloadsParams = DeliverOutboundPayloadsCoreParams & 
   /** @internal Skip write-ahead queue (used by crash-recovery to avoid re-enqueueing). */
   skipQueue?: boolean;
   queuePolicy?: OutboundDeliveryQueuePolicy;
+  renderedBatchPlan?: QueuedRenderedMessageBatchPlan;
   onDeliveryIntent?: (intent: OutboundDeliveryIntent) => void;
 };
 
@@ -891,6 +893,7 @@ export async function deliverOutboundPayloads(
         to,
         accountId: params.accountId,
         payloads,
+        renderedBatchPlan: params.renderedBatchPlan,
         threadId: params.threadId,
         replyToId: params.replyToId,
         replyToMode: params.replyToMode,
