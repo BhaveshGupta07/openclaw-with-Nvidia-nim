@@ -2,7 +2,7 @@ import type { ReplyPayload } from "../../auto-reply/reply-payload.js";
 import { clearHistoryEntriesIfEnabled } from "../../auto-reply/reply/history.js";
 import { EMPTY_CHANNEL_TURN_DISPATCH_COUNTS } from "./dispatch-result.js";
 import {
-  deliverDurableInboundReplyPayload,
+  deliverInboundReplyWithMessageSendContext,
   isDurableInboundReplyDeliveryHandled,
   throwIfDurableInboundReplyDeliveryFailed,
 } from "./durable-delivery.js";
@@ -10,6 +10,7 @@ export { buildChannelTurnContext, filterChannelTurnSupplementalContext } from ".
 export type { BuildChannelTurnContextParams } from "./context.js";
 export {
   deliverDurableInboundReplyPayload,
+  deliverInboundReplyWithMessageSendContext,
   isDurableInboundReplyDeliveryHandled,
   throwIfDurableInboundReplyDeliveryFailed,
 } from "./durable-delivery.js";
@@ -161,7 +162,7 @@ export async function dispatchAssembledChannelTurn(
             ...params.dispatcherOptions,
             deliver: async (payload: ReplyPayload, info) => {
               if (params.delivery.durable) {
-                const durable = await deliverDurableInboundReplyPayload({
+                const durable = await deliverInboundReplyWithMessageSendContext({
                   cfg: params.cfg,
                   channel: params.channel,
                   accountId: params.accountId,

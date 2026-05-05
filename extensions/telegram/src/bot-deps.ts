@@ -1,7 +1,7 @@
+import { deliverInboundReplyWithMessageSendContext } from "openclaw/plugin-sdk/channel-message";
 import { createChannelReplyPipeline } from "openclaw/plugin-sdk/channel-reply-pipeline";
 import { readChannelAllowFromStore } from "openclaw/plugin-sdk/conversation-runtime";
 import { upsertChannelPairingRequest } from "openclaw/plugin-sdk/conversation-runtime";
-import { deliverDurableInboundReplyPayload } from "openclaw/plugin-sdk/inbound-reply-dispatch";
 import { buildModelsProviderData } from "openclaw/plugin-sdk/models-provider-runtime";
 import { dispatchReplyWithBufferedBlockDispatcher } from "openclaw/plugin-sdk/reply-dispatch-runtime";
 import { getRuntimeConfig } from "openclaw/plugin-sdk/runtime-config-snapshot";
@@ -33,7 +33,7 @@ export type TelegramBotDeps = {
   resolveExecApproval?: typeof resolveTelegramExecApproval;
   createTelegramDraftStream?: typeof createTelegramDraftStream;
   deliverReplies?: typeof deliverReplies;
-  deliverDurableInboundReplyPayload?: typeof deliverDurableInboundReplyPayload;
+  deliverInboundReplyWithMessageSendContext?: typeof deliverInboundReplyWithMessageSendContext;
   emitInternalMessageSentHook?: typeof emitInternalMessageSentHook;
   editMessageTelegram?: typeof editMessageTelegram;
   createChannelReplyPipeline?: typeof createChannelReplyPipeline;
@@ -85,8 +85,8 @@ export const defaultTelegramBotDeps: TelegramBotDeps = {
   get deliverReplies() {
     return deliverReplies;
   },
-  get deliverDurableInboundReplyPayload() {
-    return deliverDurableInboundReplyPayload;
+  get deliverInboundReplyWithMessageSendContext() {
+    return deliverInboundReplyWithMessageSendContext;
   },
   get emitInternalMessageSentHook() {
     return emitInternalMessageSentHook;

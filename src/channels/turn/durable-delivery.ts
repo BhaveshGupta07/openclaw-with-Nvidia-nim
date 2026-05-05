@@ -100,7 +100,7 @@ export function throwIfDurableInboundReplyDeliveryFailed(
   }
 }
 
-export async function deliverDurableInboundReplyPayload(
+export async function deliverInboundReplyWithMessageSendContext(
   params: DurableInboundReplyDeliveryParams,
 ): Promise<DurableInboundReplyDeliveryResult> {
   if (params.info.kind !== "final") {
@@ -184,3 +184,6 @@ export async function deliverDurableInboundReplyPayload(
   }
   return { status: "handled_visible", delivery };
 }
+
+/** @deprecated Use `deliverInboundReplyWithMessageSendContext`. */
+export const deliverDurableInboundReplyPayload = deliverInboundReplyWithMessageSendContext;

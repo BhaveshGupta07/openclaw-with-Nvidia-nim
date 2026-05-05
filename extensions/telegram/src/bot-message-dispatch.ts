@@ -835,7 +835,7 @@ export const dispatchTelegramMessage = async ({
       }
       const deliverablePayload = applyQuoteReplyTarget(payload);
       const silent = options?.silent ?? (silentErrorReplies && payload.isError === true);
-      const durableDelivery = telegramDeps.deliverDurableInboundReplyPayload;
+      const durableDelivery = telegramDeps.deliverInboundReplyWithMessageSendContext;
       if (options?.durable && durableDelivery) {
         const durable = await durableDelivery({
           cfg,

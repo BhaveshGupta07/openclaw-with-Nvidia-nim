@@ -12,23 +12,24 @@ type CapturedReplyPayload = {
   mediaUrls?: string[];
 };
 
-const { dispatchReplyWithBufferedBlockDispatcherMock, deliverDurableInboundReplyPayloadMock } =
-  vi.hoisted(() => ({
-    dispatchReplyWithBufferedBlockDispatcherMock: vi.fn(async (params: { ctx: unknown }) => {
-      capturedDispatchParams = params;
-      return { queuedFinal: false, counts: { tool: 0, block: 0, final: 0 } };
-    }),
-    deliverDurableInboundReplyPayloadMock: vi.fn<(...args: unknown[]) => Promise<unknown>>(
-      async () => null,
-    ),
-  }));
+const {
+  dispatchReplyWithBufferedBlockDispatcherMock,
+  deliverInboundReplyWithMessageSendContextMock,
+} = vi.hoisted(() => ({
+  dispatchReplyWithBufferedBlockDispatcherMock: vi.fn(async (params: { ctx: unknown }) => {
+    capturedDispatchParams = params;
+    return { queuedFinal: false, counts: { tool: 0, block: 0, final: 0 } };
+  }),
+  deliverInboundReplyWithMessageSendContextMock: vi.fn<(...args: unknown[]) => Promise<unknown>>(
+    async () => null,
+  ),
+}));
 
-vi.mock("openclaw/plugin-sdk/inbound-reply-dispatch", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("openclaw/plugin-sdk/inbound-reply-dispatch")>();
+vi.mock("openclaw/plugin-sdk/channel-message", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/channel-message")>();
   return {
     ...actual,
-    deliverDurableInboundReplyPayload: deliverDurableInboundReplyPayloadMock,
+    deliverInboundReplyWithMessageSendContext: deliverInboundReplyWithMessageSendContextMock,
   };
 });
 
@@ -246,8 +247,8 @@ describe("whatsapp inbound dispatch", () => {
   beforeEach(() => {
     capturedDispatchParams = undefined;
     dispatchReplyWithBufferedBlockDispatcherMock.mockClear();
-    deliverDurableInboundReplyPayloadMock.mockReset();
-    deliverDurableInboundReplyPayloadMock.mockResolvedValue({
+    deliverInboundReplyWithMessageSendContextMock.mockReset();
+    deliverInboundReplyWithMessageSendContextMock.mockResolvedValue({
       status: "unsupported",
       reason: "missing_outbound_handler",
     });
@@ -532,7 +533,7 @@ describe("whatsapp inbound dispatch", () => {
   });
 
   it("queues final WhatsApp payloads through durable outbound delivery", async () => {
-    deliverDurableInboundReplyPayloadMock.mockResolvedValueOnce({
+    deliverInboundReplyWithMessageSendContextMock.mockResolvedValueOnce({
       status: "handled_visible",
       delivery: {
         messageIds: ["wa-1"],
@@ -556,7 +557,7 @@ describe("whatsapp inbound dispatch", () => {
     const deliver = getCapturedDeliver();
     await deliver?.({ text: "final payload" }, { kind: "final" });
 
-    expect(deliverDurableInboundReplyPayloadMock).toHaveBeenCalledWith(
+    expect(deliverInboundReplyWithMessageSendContextMock).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: "whatsapp",
         accountId: "default",
@@ -580,7 +581,7 @@ describe("whatsapp inbound dispatch", () => {
   });
 
   it("does not fall back when durable WhatsApp delivery suppresses a send", async () => {
-    deliverDurableInboundReplyPayloadMock.mockResolvedValueOnce({
+    deliverInboundReplyWithMessageSendContextMock.mockResolvedValueOnce({
       status: "handled_no_send",
       reason: "no_visible_result",
       delivery: {
@@ -599,7 +600,7 @@ describe("whatsapp inbound dispatch", () => {
     const deliver = getCapturedDeliver();
     await deliver?.({ text: "cancelled by hook" }, { kind: "final" });
 
-    expect(deliverDurableInboundReplyPayloadMock).toHaveBeenCalledWith(
+    expect(deliverInboundReplyWithMessageSendContextMock).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: "whatsapp",
         payload: expect.objectContaining({ text: "cancelled by hook" }),
@@ -611,7 +612,7 @@ describe("whatsapp inbound dispatch", () => {
   });
 
   it("keeps media replies on the WhatsApp owner delivery path", async () => {
-    deliverDurableInboundReplyPayloadMock.mockResolvedValueOnce({
+    deliverInboundReplyWithMessageSendContextMock.mockResolvedValueOnce({
       status: "handled_visible",
       delivery: {
         messageIds: ["wa-1"],
@@ -632,7 +633,7 @@ describe("whatsapp inbound dispatch", () => {
       { kind: "final" },
     );
 
-    expect(deliverDurableInboundReplyPayloadMock).not.toHaveBeenCalled();
+    expect(deliverInboundReplyWithMessageSendContextMock).not.toHaveBeenCalled();
     expect(deliverReply).toHaveBeenCalledWith(
       expect.objectContaining({
         replyResult: expect.objectContaining({

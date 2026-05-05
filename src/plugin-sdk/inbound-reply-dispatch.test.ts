@@ -4,13 +4,13 @@ import type { FinalizedMsgContext } from "../auto-reply/templating.js";
 import type { RecordInboundSession } from "../channels/session.types.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
 
-const deliverDurableInboundReplyPayload = vi.hoisted(() => vi.fn());
+const deliverInboundReplyWithMessageSendContext = vi.hoisted(() => vi.fn());
 
 vi.mock("../channels/turn/kernel.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../channels/turn/kernel.js")>();
   return {
     ...actual,
-    deliverDurableInboundReplyPayload,
+    deliverInboundReplyWithMessageSendContext,
   };
 });
 
@@ -24,7 +24,7 @@ import {
 
 describe("recordInboundSessionAndDispatchReply", () => {
   beforeEach(() => {
-    deliverDurableInboundReplyPayload.mockReset();
+    deliverInboundReplyWithMessageSendContext.mockReset();
   });
 
   it("delegates record and dispatch through the channel turn kernel once", async () => {
@@ -132,7 +132,7 @@ describe("recordInboundSessionAndDispatchReply", () => {
   });
 
   it("forwards durable delivery options through the SDK convenience wrapper", async () => {
-    deliverDurableInboundReplyPayload.mockResolvedValue({
+    deliverInboundReplyWithMessageSendContext.mockResolvedValue({
       status: "handled_visible",
       delivery: {
         messageIds: ["queued-1"],
@@ -182,7 +182,7 @@ describe("recordInboundSessionAndDispatchReply", () => {
       onDispatchError: vi.fn(),
     });
 
-    expect(deliverDurableInboundReplyPayload).toHaveBeenCalledWith(
+    expect(deliverInboundReplyWithMessageSendContext).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: "telegram",
         accountId: "default",

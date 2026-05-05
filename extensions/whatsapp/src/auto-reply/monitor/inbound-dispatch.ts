@@ -1,8 +1,8 @@
-import { deriveDurableFinalDeliveryRequirements } from "openclaw/plugin-sdk/channel-message";
 import {
-  deliverDurableInboundReplyPayload,
-  hasVisibleInboundReplyDispatch,
-} from "openclaw/plugin-sdk/inbound-reply-dispatch";
+  deliverInboundReplyWithMessageSendContext,
+  deriveDurableFinalDeliveryRequirements,
+} from "openclaw/plugin-sdk/channel-message";
+import { hasVisibleInboundReplyDispatch } from "openclaw/plugin-sdk/inbound-reply-dispatch";
 import type { FinalizedMsgContext } from "openclaw/plugin-sdk/reply-runtime";
 import {
   type DeliverableWhatsAppOutboundPayload,
@@ -367,7 +367,7 @@ export async function dispatchWhatsAppBufferedReply(params: {
           return;
         }
         if (!reply.hasMedia) {
-          const durable = await deliverDurableInboundReplyPayload({
+          const durable = await deliverInboundReplyWithMessageSendContext({
             cfg: params.cfg,
             channel: "whatsapp",
             accountId: params.route.accountId,

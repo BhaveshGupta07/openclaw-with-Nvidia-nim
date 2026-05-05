@@ -65,9 +65,9 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | `plugin-sdk/command-gating` | Narrow command authorization gate helpers |
     | `plugin-sdk/channel-policy` | `resolveChannelGroupRequireMention` |
     | `plugin-sdk/channel-lifecycle` | `createAccountStatusSink`, `createChannelRunQueue`, draft stream lifecycle/finalization helpers |
-    | `plugin-sdk/channel-message` | Message lifecycle contract helpers such as `defineChannelMessageAdapter`, durable-final capability derivation, capability proof helpers, `MessageSendContext`, `MessageReceiveContext`, live-message state, durable recovery state, `RenderedMessageBatch`, and message receipt types |
+    | `plugin-sdk/channel-message` | Message lifecycle contract helpers such as `defineChannelMessageAdapter`, `deliverInboundReplyWithMessageSendContext`, durable-final capability derivation, capability proof helpers, `MessageSendContext`, `MessageReceiveContext`, live-message state, durable recovery state, `RenderedMessageBatch`, and message receipt types |
     | `plugin-sdk/inbound-envelope` | Shared inbound route + envelope builder helpers |
-    | `plugin-sdk/inbound-reply-dispatch` | Shared inbound record-and-dispatch helpers, visible/final dispatch predicates, and `deliverDurableInboundReplyPayload` for prepared channel dispatchers |
+    | `plugin-sdk/inbound-reply-dispatch` | Shared inbound record-and-dispatch helpers, visible/final dispatch predicates, and deprecated `deliverDurableInboundReplyPayload` compatibility for prepared channel dispatchers |
     | `plugin-sdk/messaging-targets` | Target parsing/matching helpers |
     | `plugin-sdk/outbound-media` | Shared outbound media loading helpers |
     | `plugin-sdk/outbound-send-deps` | Lightweight outbound send dependency lookup for channel adapters |

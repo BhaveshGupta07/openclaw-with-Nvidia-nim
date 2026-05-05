@@ -11,6 +11,7 @@ import {
   hasFinalChannelTurnDispatch,
   hasVisibleChannelTurnDispatch,
   deliverDurableInboundReplyPayload,
+  deliverInboundReplyWithMessageSendContext,
   isDurableInboundReplyDeliveryHandled,
   resolveChannelTurnDispatchCounts,
   runChannelTurn,
@@ -55,6 +56,7 @@ export {
   hasFinalChannelTurnDispatch as hasFinalInboundReplyDispatch,
   hasVisibleChannelTurnDispatch as hasVisibleInboundReplyDispatch,
   deliverDurableInboundReplyPayload,
+  deliverInboundReplyWithMessageSendContext,
   resolveChannelTurnDispatchCounts as resolveInboundReplyDispatchCounts,
 };
 
@@ -170,7 +172,7 @@ export async function recordInboundSessionAndDispatchReply(params: {
         ? normalizeOutboundReplyPayload(payload as Record<string, unknown>)
         : {};
     if (params.durable) {
-      const durable = await deliverDurableInboundReplyPayload({
+      const durable = await deliverInboundReplyWithMessageSendContext({
         cfg: params.cfg,
         channel: params.channel,
         accountId: params.accountId,

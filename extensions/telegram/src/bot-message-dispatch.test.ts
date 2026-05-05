@@ -18,7 +18,7 @@ const dispatchReplyWithBufferedBlockDispatcher = vi.hoisted(() =>
   vi.fn<(params: DispatchReplyWithBufferedBlockDispatcherArgs) => Promise<unknown>>(),
 );
 const deliverReplies = vi.hoisted(() => vi.fn());
-const deliverDurableInboundReplyPayload = vi.hoisted(() => vi.fn());
+const deliverInboundReplyWithMessageSendContext = vi.hoisted(() => vi.fn());
 const emitInternalMessageSentHook = vi.hoisted(() => vi.fn());
 const createForumTopicTelegram = vi.hoisted(() => vi.fn());
 const deleteMessageTelegram = vi.hoisted(() => vi.fn());
@@ -80,12 +80,11 @@ vi.mock("./draft-stream.js", () => ({
   createTelegramDraftStream,
 }));
 
-vi.mock("openclaw/plugin-sdk/inbound-reply-dispatch", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("openclaw/plugin-sdk/inbound-reply-dispatch")>();
+vi.mock("openclaw/plugin-sdk/channel-message", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("openclaw/plugin-sdk/channel-message")>();
   return {
     ...actual,
-    deliverDurableInboundReplyPayload,
+    deliverInboundReplyWithMessageSendContext,
   };
 });
 
@@ -162,8 +161,8 @@ const telegramDepsForTest: TelegramBotDeps = {
   createTelegramDraftStream:
     createTelegramDraftStream as TelegramBotDeps["createTelegramDraftStream"],
   deliverReplies: deliverReplies as TelegramBotDeps["deliverReplies"],
-  deliverDurableInboundReplyPayload:
-    deliverDurableInboundReplyPayload as TelegramBotDeps["deliverDurableInboundReplyPayload"],
+  deliverInboundReplyWithMessageSendContext:
+    deliverInboundReplyWithMessageSendContext as TelegramBotDeps["deliverInboundReplyWithMessageSendContext"],
   emitInternalMessageSentHook:
     emitInternalMessageSentHook as TelegramBotDeps["emitInternalMessageSentHook"],
   editMessageTelegram: editMessageTelegram as TelegramBotDeps["editMessageTelegram"],
@@ -185,7 +184,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
     createTelegramDraftStream.mockReset();
     dispatchReplyWithBufferedBlockDispatcher.mockReset();
     deliverReplies.mockReset();
-    deliverDurableInboundReplyPayload.mockReset();
+    deliverInboundReplyWithMessageSendContext.mockReset();
     emitInternalMessageSentHook.mockReset();
     createForumTopicTelegram.mockReset();
     deleteMessageTelegram.mockReset();
@@ -222,7 +221,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
       counts: { block: 0, final: 0, tool: 0 },
     });
     deliverReplies.mockResolvedValue({ delivered: true });
-    deliverDurableInboundReplyPayload.mockResolvedValue({
+    deliverInboundReplyWithMessageSendContext.mockResolvedValue({
       status: "unsupported",
       reason: "missing_outbound_handler",
     });
@@ -466,7 +465,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
   });
 
   it("queues final Telegram replies through outbound delivery when available", async () => {
-    deliverDurableInboundReplyPayload.mockResolvedValue({
+    deliverInboundReplyWithMessageSendContext.mockResolvedValue({
       status: "handled_visible",
       delivery: {
         messageIds: ["1001"],
@@ -492,7 +491,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
       telegramDeps: telegramDepsForTest,
     });
 
-    expect(deliverDurableInboundReplyPayload).toHaveBeenCalledWith(
+    expect(deliverInboundReplyWithMessageSendContext).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: "telegram",
         to: "123",
@@ -516,7 +515,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
   });
 
   it("skips answer draft preview for same-chat selected quotes", async () => {
-    deliverDurableInboundReplyPayload.mockResolvedValue({
+    deliverInboundReplyWithMessageSendContext.mockResolvedValue({
       status: "unsupported",
       reason: "capability_mismatch",
       capability: "nativeQuote",
@@ -550,7 +549,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
         replyQuoteText: " quoted slice\n",
       }),
     );
-    expect(deliverDurableInboundReplyPayload).toHaveBeenCalledWith(
+    expect(deliverInboundReplyWithMessageSendContext).toHaveBeenCalledWith(
       expect.objectContaining({
         requiredCapabilities: expect.objectContaining({
           nativeQuote: true,
@@ -1146,7 +1145,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
   });
 
   it("queues silent error replies through durable delivery with silent preserved", async () => {
-    deliverDurableInboundReplyPayload.mockResolvedValue({
+    deliverInboundReplyWithMessageSendContext.mockResolvedValue({
       status: "handled_visible",
       delivery: {
         messageIds: ["durable-silent"],
@@ -1164,7 +1163,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
       telegramCfg: { silentErrorReplies: true },
     });
 
-    expect(deliverDurableInboundReplyPayload).toHaveBeenCalledWith(
+    expect(deliverInboundReplyWithMessageSendContext).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: "telegram",
         payload: expect.objectContaining({ isError: true }),
@@ -4435,7 +4434,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
       },
     );
     deliverReplies.mockResolvedValue({ delivered: true });
-    deliverDurableInboundReplyPayload.mockResolvedValue({
+    deliverInboundReplyWithMessageSendContext.mockResolvedValue({
       status: "handled_visible",
       delivery: {
         messageIds: ["2002"],
@@ -4449,7 +4448,7 @@ describe("dispatchTelegramMessage draft streaming", () => {
     await dispatchWithContext({ context: createContext() });
 
     expect(editMessageTelegram).toHaveBeenCalledTimes(1);
-    expect(deliverDurableInboundReplyPayload).toHaveBeenCalledWith(
+    expect(deliverInboundReplyWithMessageSendContext).toHaveBeenCalledWith(
       expect.objectContaining({
         channel: "telegram",
         to: "123",

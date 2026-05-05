@@ -1,4 +1,10 @@
 import type { ChannelMessageAdapter } from "../channels/message/index.js";
+export {
+  deliverInboundReplyWithMessageSendContext,
+  type DurableInboundReplyDeliveryOptions,
+  type DurableInboundReplyDeliveryParams,
+  type DurableInboundReplyDeliveryResult,
+} from "../channels/turn/kernel.js";
 
 export {
   classifyDurableSendRecoveryState,
