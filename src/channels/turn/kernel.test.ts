@@ -146,6 +146,9 @@ describe("channel turn kernel", () => {
     expect(deliveredResult).toEqual(
       expect.objectContaining({
         messageIds: ["tg-1", "tg-2"],
+        receipt: expect.objectContaining({
+          platformMessageIds: ["tg-1", "tg-2"],
+        }),
         visibleReplySent: true,
       }),
     );

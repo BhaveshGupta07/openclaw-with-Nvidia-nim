@@ -173,6 +173,7 @@ export async function deliverDurableInboundReplyPayload(
   const messageIds = send.receipt.platformMessageIds;
   const delivery: ChannelDeliveryResult = {
     ...(messageIds.length > 0 ? { messageIds } : {}),
+    receipt: send.receipt,
     threadId: stringifyThreadId(threadId),
     ...(replyToId ? { replyToId } : {}),
     visibleReplySent: send.status === "sent",

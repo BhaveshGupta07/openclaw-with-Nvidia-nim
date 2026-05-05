@@ -14,6 +14,7 @@ import type {
   DurableFinalDeliveryRequirements,
   OutboundDeliveryQueuePolicy,
 } from "../../infra/outbound/deliver.js";
+import type { MessageReceipt } from "../message/types.js";
 import type { InboundLastRouteUpdate, RecordInboundSession } from "../session.types.js";
 
 export type ChannelTurnAdmission =
@@ -181,6 +182,7 @@ export type ChannelDeliveryIntent = {
 
 export type ChannelDeliveryResult = {
   messageIds?: string[];
+  receipt?: MessageReceipt;
   threadId?: string;
   replyToId?: string;
   visibleReplySent?: boolean;
