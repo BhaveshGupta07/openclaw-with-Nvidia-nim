@@ -111,10 +111,25 @@ describe("nextcloud-talk send cfg threading", () => {
       direction: "outbound",
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       messageId: "12345",
       roomToken: "abc123",
       timestamp: 1_706_000_000,
+    });
+    expect(result.receipt).toMatchObject({
+      primaryPlatformMessageId: "12345",
+      platformMessageIds: ["12345"],
+      parts: [
+        {
+          platformMessageId: "12345",
+          kind: "text",
+          raw: {
+            channel: "nextcloud-talk",
+            conversationId: "abc123",
+            messageId: "12345",
+          },
+        },
+      ],
     });
   });
 
@@ -131,10 +146,31 @@ describe("nextcloud-talk send cfg threading", () => {
     });
 
     expectProvidedMessageCfgThreading(cfg);
-    expect(result).toEqual({
+    expect(result).toMatchObject({
       messageId: "12346",
       roomToken: "abc123",
       timestamp: 1_706_000_001,
+    });
+  });
+
+  it("preserves reply ids in receipts", async () => {
+    const cfg = { source: "provided" } as const;
+    mockNextcloudMessageResponse(12347, 1_706_000_002);
+
+    const result = await sendMessageNextcloudTalk("room:abc123", "hello", {
+      cfg,
+      accountId: "work",
+      replyTo: "parent-1",
+    });
+
+    expect(result.receipt).toMatchObject({
+      replyToId: "parent-1",
+      parts: [
+        {
+          platformMessageId: "12347",
+          replyToId: "parent-1",
+        },
+      ],
     });
   });
 
