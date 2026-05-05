@@ -17,7 +17,7 @@ export {
   createChannelReplyPipeline as createChannelMessageReplyPipeline,
   createReplyPrefixContext,
   resolveChannelSourceReplyDeliveryMode as resolveChannelMessageSourceReplyDeliveryMode,
-} from "./channel-reply-pipeline.js";
+} from "./channel-reply-core.js";
 
 export {
   classifyDurableSendRecoveryState,

@@ -10,7 +10,6 @@ import type { FinalizedMsgContext } from "../auto-reply/templating.js";
 import {
   hasFinalChannelTurnDispatch,
   hasVisibleChannelTurnDispatch,
-  deliverDurableInboundReplyPayload,
   deliverInboundReplyWithMessageSendContext,
   isDurableInboundReplyDeliveryHandled,
   resolveChannelTurnDispatchCounts,
@@ -23,7 +22,7 @@ import type { PreparedChannelTurn, RunChannelTurnParams } from "../channels/turn
 export type { ChannelTurnRecordOptions } from "../channels/turn/types.js";
 export type { DurableInboundReplyDeliveryParams } from "../channels/turn/kernel.js";
 import type { OpenClawConfig } from "../config/types.openclaw.js";
-import { createChannelReplyPipeline } from "./channel-reply-pipeline.js";
+import { createChannelReplyPipeline as createChannelMessageReplyPipeline } from "./channel-reply-core.js";
 import {
   normalizeOutboundReplyPayload,
   type OutboundReplyPayload,
@@ -55,7 +54,7 @@ export async function runInboundReplyTurn<TRaw, TDispatchResult = DispatchFromCo
 export {
   hasFinalChannelTurnDispatch as hasFinalInboundReplyDispatch,
   hasVisibleChannelTurnDispatch as hasVisibleInboundReplyDispatch,
-  deliverDurableInboundReplyPayload,
+  deliverInboundReplyWithMessageSendContext as deliverDurableInboundReplyPayload,
   deliverInboundReplyWithMessageSendContext,
   resolveChannelTurnDispatchCounts as resolveInboundReplyDispatchCounts,
 };
@@ -160,7 +159,7 @@ export async function recordInboundSessionAndDispatchReply(params: {
   onDispatchError: (err: unknown, info: { kind: string }) => void;
   replyOptions?: ReplyOptionsWithoutModelSelected;
 }): Promise<void> {
-  const { onModelSelected, ...replyPipeline } = createChannelReplyPipeline({
+  const { onModelSelected, ...replyPipeline } = createChannelMessageReplyPipeline({
     cfg: params.cfg,
     agentId: params.agentId,
     channel: params.channel,
