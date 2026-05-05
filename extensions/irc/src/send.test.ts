@@ -106,6 +106,21 @@ describe("sendMessageIrc cfg threading", () => {
     expect(result.target).toBe("#room");
     expect(result.messageId).toEqual(expect.any(String));
     expect(result.messageId.length).toBeGreaterThan(0);
+    expect(result.receipt).toMatchObject({
+      primaryPlatformMessageId: "irc-msg-1",
+      platformMessageIds: ["irc-msg-1"],
+      parts: [
+        {
+          platformMessageId: "irc-msg-1",
+          kind: "text",
+          raw: {
+            channel: "irc",
+            conversationId: "#room",
+            messageId: "irc-msg-1",
+          },
+        },
+      ],
+    });
   });
 
   it("fails hard when cfg is omitted", async () => {
@@ -150,5 +165,37 @@ describe("sendMessageIrc cfg threading", () => {
     expect(result.target).toBe("#room");
     expect(result.messageId).toEqual(expect.any(String));
     expect(result.messageId.length).toBeGreaterThan(0);
+  });
+
+  it("preserves reply ids in receipts", async () => {
+    const providedCfg = {
+      channels: {
+        irc: {
+          host: "irc.example.com",
+          nick: "openclaw",
+        },
+      },
+    } as unknown as CoreConfig;
+    const client = {
+      isReady: vi.fn(() => true),
+      sendPrivmsg: vi.fn(),
+    } as unknown as IrcClient;
+
+    const result = await sendMessageIrc("#room", "hello", {
+      cfg: providedCfg,
+      client,
+      replyTo: "irc-parent-1",
+    });
+
+    expect(client.sendPrivmsg).toHaveBeenCalledWith("#room", "hello\n\n[reply:irc-parent-1]");
+    expect(result.receipt).toMatchObject({
+      replyToId: "irc-parent-1",
+      parts: [
+        {
+          platformMessageId: "irc-msg-1",
+          replyToId: "irc-parent-1",
+        },
+      ],
+    });
   });
 });
