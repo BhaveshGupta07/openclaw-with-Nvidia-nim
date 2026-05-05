@@ -1,4 +1,9 @@
 import {
+  createPreviewMessageReceipt,
+  deliverFinalizableLivePreview,
+  type MessageReceipt,
+} from "openclaw/plugin-sdk/channel-message";
+import {
   createChannelProgressDraftGate,
   formatChannelProgressDraftLine,
   formatChannelProgressDraftLineForEntry,
@@ -1785,39 +1790,74 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
                 !payloadReplyMismatch &&
                 !mustDeliverFinalNormally
               ) {
-                try {
-                  const requiresFinalEdit =
-                    quietDraftStreaming || !draftStream.matchesPreparedText(payload.text);
-                  if (requiresFinalEdit) {
+                await deliverFinalizableLivePreview<
+                  ReplyPayload,
+                  string,
+                  {
+                    text: string;
+                    finalizeLive: boolean;
+                    extraContent?: Record<string, unknown>;
+                  }
+                >({
+                  kind: "final",
+                  payload,
+                  draft: {
+                    flush: async () => {},
+                    clear: async () => {},
+                    discardPending: async () => {},
+                    id: () => draftEventId,
+                  },
+                  buildFinalEdit: () => ({
+                    text: payload.text,
+                    finalizeLive: !(
+                      quietDraftStreaming || !draftStream.matchesPreparedText(payload.text)
+                    ),
+                    ...(quietDraftStreaming
+                      ? { extraContent: buildMatrixFinalizedPreviewContent() }
+                      : {}),
+                  }),
+                  editFinal: async (_draftEventId, edit) => {
+                    if (edit.finalizeLive) {
+                      if (!(await draftStream.finalizeLive())) {
+                        throw new Error("Matrix draft live finalize failed");
+                      }
+                      return;
+                    }
                     const { editMessageMatrix } = await loadMatrixSendModule();
-                    await editMessageMatrix(roomId, draftEventId, payload.text, {
+                    await editMessageMatrix(roomId, _draftEventId, edit.text, {
                       client,
                       cfg,
                       threadId: threadTarget,
                       accountId: _route.accountId,
-                      extraContent: quietDraftStreaming
-                        ? buildMatrixFinalizedPreviewContent()
-                        : undefined,
+                      extraContent: edit.extraContent,
                     });
-                  } else if (!(await draftStream.finalizeLive())) {
-                    throw new Error("Matrix draft live finalize failed");
-                  }
-                } catch {
-                  await redactMatrixDraftEvent(client, roomId, draftEventId);
-                  await deliverMatrixReplies({
-                    cfg,
-                    replies: [payload],
-                    roomId,
-                    client,
-                    runtime,
-                    textLimit,
-                    replyToMode,
-                    threadId: threadTarget,
-                    accountId: _route.accountId,
-                    mediaLocalRoots,
-                    tableMode,
-                  });
-                }
+                  },
+                  deliverNormally: async () => {
+                    await redactMatrixDraftEvent(client, roomId, draftEventId);
+                    await deliverMatrixReplies({
+                      cfg,
+                      replies: [payload],
+                      roomId,
+                      client,
+                      runtime,
+                      textLimit,
+                      replyToMode,
+                      threadId: threadTarget,
+                      accountId: _route.accountId,
+                      mediaLocalRoots,
+                      tableMode,
+                    });
+                  },
+                  createPreviewReceipt: (id): MessageReceipt =>
+                    createPreviewMessageReceipt({
+                      id,
+                      ...(threadTarget ? { threadId: threadTarget } : {}),
+                      ...(currentDraftReplyToId ? { replyToId: currentDraftReplyToId } : {}),
+                    }),
+                  logPreviewEditFailure: (err) => {
+                    logVerboseMessage(`matrix: preview final edit failed: ${String(err)}`);
+                  },
+                });
                 draftConsumed = true;
               } else if (draftEventId && hasMedia && !payloadReplyMismatch) {
                 let textEditOk = !mustDeliverFinalNormally;

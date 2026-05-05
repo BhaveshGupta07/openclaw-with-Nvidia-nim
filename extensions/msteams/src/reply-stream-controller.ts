@@ -1,4 +1,10 @@
 import {
+  createLiveMessageState,
+  createPreviewMessageReceipt,
+  markLiveMessageFinalized,
+  type LiveMessageState,
+} from "openclaw/plugin-sdk/channel-message";
+import {
   createChannelProgressDraftGate,
   formatChannelProgressDraftText,
   isChannelProgressDraftWorkToolName,
@@ -65,6 +71,20 @@ export function createTeamsReplyStreamController(params: {
   let progressLines: string[] = [];
   let lastInformativeText = "";
   let pendingFinalize: Promise<void> | undefined;
+  let liveState: LiveMessageState<ReplyPayload> = createLiveMessageState({
+    canFinalizeInPlace: Boolean(stream),
+  });
+
+  const markStreamFinalized = () => {
+    if (!stream || stream.isFailed) {
+      return;
+    }
+    const messageId = stream.messageId ?? stream.previewStreamId;
+    if (!messageId) {
+      return;
+    }
+    liveState = markLiveMessageFinalized(liveState, createPreviewMessageReceipt({ id: messageId }));
+  };
 
   const renderInformativeUpdate = async () => {
     if (!stream) {
@@ -188,6 +208,7 @@ export function createTeamsReplyStreamController(params: {
         if (!finalized || stream.isFailed) {
           return payload;
         }
+        markStreamFinalized();
         return hasMedia ? { ...payload, text: undefined } : undefined;
       }
 
@@ -211,7 +232,9 @@ export function createTeamsReplyStreamController(params: {
       // subsequent text segments (after tool calls) use fallback delivery.
       // finalize() is idempotent; the later call in markDispatchIdle is a no-op.
       streamReceivedTokens = false;
-      pendingFinalize = stream.finalize();
+      pendingFinalize = stream.finalize().then(() => {
+        markStreamFinalized();
+      });
 
       if (!hasMedia) {
         return undefined;
@@ -222,11 +245,18 @@ export function createTeamsReplyStreamController(params: {
     async finalize(): Promise<void> {
       progressDraftGate.cancel();
       await pendingFinalize;
-      await stream?.finalize();
+      if (!pendingFinalize) {
+        await stream?.finalize();
+        markStreamFinalized();
+      }
     },
 
     hasStream(): boolean {
       return Boolean(stream);
+    },
+
+    liveState(): LiveMessageState<ReplyPayload> {
+      return liveState;
     },
 
     /**
