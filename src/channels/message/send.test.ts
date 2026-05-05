@@ -48,6 +48,14 @@ describe("withDurableMessageSendContext", () => {
           }),
         );
         const rendered = await ctx.render();
+        expect(rendered).toEqual({
+          payloads: [{ text: "hello" }],
+          plan: expect.objectContaining({
+            payloadCount: 1,
+            textCount: 1,
+            mediaCount: 0,
+          }),
+        });
         const send = await ctx.send(rendered);
         expect(ctx.intent).toEqual(
           expect.objectContaining({
@@ -55,6 +63,7 @@ describe("withDurableMessageSendContext", () => {
             channel: "telegram",
             to: "chat-1",
             durability: "required",
+            renderedBatch: rendered,
           }),
         );
         return send;
@@ -78,6 +87,58 @@ describe("withDurableMessageSendContext", () => {
         payloads: [{ text: "hello" }],
         threadId: 42,
         replyToId: "reply-1",
+      }),
+    );
+  });
+
+  it("records a replayable rendered batch plan on the durable intent", async () => {
+    deliverOutboundPayloads.mockImplementationOnce(async (params: DeliveryIntentCallbackParams) => {
+      params.onDeliveryIntent?.({
+        id: "intent-media",
+        channel: "telegram",
+        to: "chat-1",
+        queuePolicy: "required",
+      });
+      return [{ channel: "telegram", messageId: "media-1" }];
+    });
+    let intent: unknown;
+
+    await withDurableMessageSendContext(
+      {
+        cfg,
+        channel: "telegram",
+        to: "chat-1",
+        payloads: [
+          {
+            text: "caption",
+            mediaUrls: ["file:///tmp/a.png", "file:///tmp/b.png"],
+            audioAsVoice: true,
+            presentation: { blocks: [{ type: "text", text: "card" }] },
+            interactive: { blocks: [{ type: "buttons", buttons: [{ label: "OK" }] }] },
+            channelData: { native: true },
+          },
+        ],
+      },
+      async (ctx) => {
+        const rendered = await ctx.render();
+        await ctx.send(rendered);
+        intent = ctx.intent;
+      },
+    );
+
+    expect(intent).toEqual(
+      expect.objectContaining({
+        renderedBatch: expect.objectContaining({
+          plan: {
+            payloadCount: 1,
+            textCount: 1,
+            mediaCount: 2,
+            voiceCount: 1,
+            presentationCount: 1,
+            interactiveCount: 1,
+            channelDataCount: 1,
+          },
+        }),
       }),
     );
   });

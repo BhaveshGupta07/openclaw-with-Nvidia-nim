@@ -42,6 +42,7 @@ export type {
   MessageReceiptPartKind,
   MessageReceiptSourceResult,
   RenderedMessageBatch,
+  RenderedMessageBatchPlan,
 } from "../channels/message/index.js";
 
 export function defineChannelMessageAdapter<const TAdapter extends object>(

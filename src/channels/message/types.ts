@@ -58,8 +58,19 @@ export type MessageReceipt = {
   raw?: readonly MessageReceiptSourceResult[];
 };
 
+export type RenderedMessageBatchPlan = {
+  payloadCount: number;
+  textCount: number;
+  mediaCount: number;
+  voiceCount: number;
+  presentationCount: number;
+  interactiveCount: number;
+  channelDataCount: number;
+};
+
 export type RenderedMessageBatch<TPayload = unknown> = {
   payloads: TPayload[];
+  plan: RenderedMessageBatchPlan;
 };
 
 export type MessageSendContext<TPayload = unknown, TSendResult = unknown> = {
@@ -93,10 +104,11 @@ export type DeriveDurableFinalDeliveryRequirementsParams = {
   extraCapabilities?: DurableFinalRequirementExtras;
 };
 
-export type DurableMessageSendIntent = {
+export type DurableMessageSendIntent<TPayload = unknown> = {
   id: string;
   channel: string;
   to: string;
   accountId?: string;
   durability: Exclude<MessageDurabilityPolicy, "disabled">;
+  renderedBatch?: RenderedMessageBatch<TPayload>;
 };
