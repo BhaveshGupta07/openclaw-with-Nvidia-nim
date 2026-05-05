@@ -1790,6 +1790,7 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
                 !payloadReplyMismatch &&
                 !mustDeliverFinalNormally
               ) {
+                const finalPreviewText = payload.text;
                 await deliverFinalizableLivePreview<
                   ReplyPayload,
                   string,
@@ -1808,9 +1809,9 @@ export function createMatrixRoomMessageHandler(params: MatrixMonitorHandlerParam
                     id: () => draftEventId,
                   },
                   buildFinalEdit: () => ({
-                    text: payload.text,
+                    text: finalPreviewText,
                     finalizeLive: !(
-                      quietDraftStreaming || !draftStream.matchesPreparedText(payload.text)
+                      quietDraftStreaming || !draftStream.matchesPreparedText(finalPreviewText)
                     ),
                     ...(quietDraftStreaming
                       ? { extraContent: buildMatrixFinalizedPreviewContent() }
