@@ -200,6 +200,30 @@ describe("channel turn kernel", () => {
     );
   });
 
+  it("treats durable outbound support preflight failures as terminal", async () => {
+    resolveOutboundDurableFinalDeliverySupport.mockRejectedValueOnce(new Error("preflight failed"));
+    const deliver = vi.fn(async () => ({ messageIds: ["legacy-1"], visibleReplySent: true }));
+    const dispatchReplyWithBufferedBlockDispatcher = createDispatch();
+
+    await expect(
+      dispatchAssembledChannelTurn({
+        cfg,
+        channel: "telegram",
+        accountId: "acct",
+        agentId: "main",
+        routeSessionKey: "agent:main:telegram:peer",
+        storePath: "/tmp/sessions.json",
+        ctxPayload: createCtx({ To: "123", OriginatingTo: "123" }),
+        recordInboundSession: createRecordInboundSession(),
+        dispatchReplyWithBufferedBlockDispatcher,
+        delivery: { deliver, durable: { replyToMode: "first" } },
+      }),
+    ).rejects.toThrow("preflight failed");
+
+    expect(deliverOutboundPayloads).not.toHaveBeenCalled();
+    expect(deliver).not.toHaveBeenCalled();
+  });
+
   it("returns custom delivery result to the buffered dispatcher", async () => {
     let deliveredResult: unknown;
     const dispatchReplyWithBufferedBlockDispatcher = vi.fn(

@@ -120,11 +120,16 @@ export async function deliverDurableInboundReplyPayload(
     return { status: "unsupported", reason: "missing_target" };
   }
 
-  const support = await resolveOutboundDurableFinalDeliverySupport({
-    cfg: params.cfg,
-    channel,
-    requirements: params.requiredCapabilities,
-  });
+  let support: Awaited<ReturnType<typeof resolveOutboundDurableFinalDeliverySupport>>;
+  try {
+    support = await resolveOutboundDurableFinalDeliverySupport({
+      cfg: params.cfg,
+      channel,
+      requirements: params.requiredCapabilities,
+    });
+  } catch (err: unknown) {
+    return { status: "failed", error: err };
+  }
   if (!support.ok) {
     return {
       status: "unsupported",
