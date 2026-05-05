@@ -15,8 +15,8 @@ vi.mock("openclaw/plugin-sdk/media-runtime", async () => {
   );
   return {
     ...actual,
-    resolveOutboundAttachmentFromUrl: (...args: unknown[]) =>
-      resolveOutboundAttachmentFromUrlMock(...args),
+    resolveOutboundAttachmentFromUrl: (params: unknown) =>
+      resolveOutboundAttachmentFromUrlMock(params),
   };
 });
 
