@@ -1,3 +1,4 @@
+import { verifyDurableFinalCapabilityProofs } from "openclaw/plugin-sdk/channel-message";
 import {
   listImportedBundledPluginFacadeIds,
   resetFacadeRuntimeStateForTest,
@@ -47,5 +48,53 @@ describe("createIMessageTestPlugin", () => {
         messageSendingHooks: true,
       }),
     );
+  });
+
+  it("backs declared durable final capabilities with delivery proofs", async () => {
+    const outbound = createIMessageTestPlugin().outbound!;
+    const sendIMessage = async () => ({ messageId: "imsg-1" });
+
+    await verifyDurableFinalCapabilityProofs({
+      adapterName: "imessageOutbound",
+      capabilities: outbound.deliveryCapabilities?.durableFinal,
+      proofs: {
+        text: async () => {
+          await expect(
+            outbound.sendText?.({
+              cfg: {} as never,
+              to: "+15551234567",
+              text: "hello",
+              deps: { imessage: sendIMessage },
+            }),
+          ).resolves.toEqual({ channel: "imessage", messageId: "imsg-1" });
+        },
+        media: async () => {
+          await expect(
+            outbound.sendMedia?.({
+              cfg: {} as never,
+              to: "+15551234567",
+              text: "caption",
+              mediaUrl: "/tmp/image.png",
+              mediaLocalRoots: ["/tmp"],
+              deps: { imessage: sendIMessage },
+            }),
+          ).resolves.toEqual({ channel: "imessage", messageId: "imsg-1" });
+        },
+        replyTo: async () => {
+          await expect(
+            outbound.sendText?.({
+              cfg: {} as never,
+              to: "+15551234567",
+              text: "reply",
+              replyToId: "reply-1",
+              deps: { imessage: sendIMessage },
+            }),
+          ).resolves.toEqual({ channel: "imessage", messageId: "imsg-1" });
+        },
+        messageSendingHooks: () => {
+          expect(outbound.sendText).toBeTypeOf("function");
+        },
+      },
+    });
   });
 });

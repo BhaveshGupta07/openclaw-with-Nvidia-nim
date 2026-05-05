@@ -3,6 +3,7 @@ import {
   primeChannelOutboundSendMock,
   type OutboundPayloadHarnessParams,
 } from "openclaw/plugin-sdk/channel-contract-testing";
+import { verifyDurableFinalCapabilityProofs } from "openclaw/plugin-sdk/channel-message";
 import { describe, expect, it, vi } from "vitest";
 import { whatsappOutbound } from "./outbound-adapter.js";
 
@@ -57,5 +58,55 @@ describe("WhatsApp outbound payload contract", () => {
         mediaUrl: "/tmp/voice.ogg",
       }),
     );
+  });
+
+  it("backs declared durable final capabilities with delivery proofs", async () => {
+    const sendWhatsApp = vi.fn();
+    primeChannelOutboundSendMock(sendWhatsApp, { messageId: "wa-1", toJid: "jid-1" });
+
+    const proveText = async () => {
+      await whatsappOutbound.sendText!({
+        cfg: {} as never,
+        to: "5511999999999@c.us",
+        text: " hello ",
+        deps: { whatsapp: sendWhatsApp },
+      });
+      expect(sendWhatsApp).toHaveBeenLastCalledWith(
+        "5511999999999@c.us",
+        "hello",
+        expect.any(Object),
+      );
+    };
+    const proveReplyTo = async () => {
+      await whatsappOutbound.sendText!({
+        cfg: {} as never,
+        to: "5511999999999@c.us",
+        text: "reply",
+        replyToId: "msg-1",
+        deps: { whatsapp: sendWhatsApp },
+      });
+      expect(sendWhatsApp).toHaveBeenLastCalledWith(
+        "5511999999999@c.us",
+        "reply",
+        expect.objectContaining({
+          quotedMessageKey: expect.objectContaining({
+            id: "msg-1",
+            remoteJid: "5511999999999@c.us",
+          }),
+        }),
+      );
+    };
+
+    await verifyDurableFinalCapabilityProofs({
+      adapterName: "whatsappOutbound",
+      capabilities: whatsappOutbound.deliveryCapabilities?.durableFinal,
+      proofs: {
+        text: proveText,
+        replyTo: proveReplyTo,
+        messageSendingHooks: () => {
+          expect(whatsappOutbound.sendText).toBeTypeOf("function");
+        },
+      },
+    });
   });
 });
