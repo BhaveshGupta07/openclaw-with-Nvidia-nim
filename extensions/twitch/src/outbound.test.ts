@@ -9,6 +9,7 @@
  * - Abort signal handling
  */
 
+import { createMessageReceiptFromOutboundResults } from "openclaw/plugin-sdk/channel-message";
 import { describe, expect, it, vi } from "vitest";
 import { resolveTwitchAccountContext } from "./config.js";
 import { twitchOutbound } from "./outbound.js";
@@ -59,6 +60,19 @@ function expectTargetError(
     throw new Error("expected resolveTarget to fail");
   }
   expect(result.error.message).toContain(expectedMessage);
+}
+
+function twitchTestReceipt(messageId: string) {
+  return createMessageReceiptFromOutboundResults({
+    results: [
+      {
+        channel: "twitch",
+        conversationId: "testchannel",
+        messageId,
+      },
+    ],
+    kind: "text",
+  });
 }
 
 describe("outbound", () => {
@@ -230,6 +244,7 @@ describe("outbound", () => {
       vi.mocked(sendMessageTwitchInternal).mockResolvedValue({
         ok: true,
         messageId: "twitch-msg-123",
+        receipt: twitchTestReceipt("twitch-msg-123"),
       });
 
       const result = await twitchOutbound.sendText!({
@@ -241,6 +256,7 @@ describe("outbound", () => {
 
       expect(result.channel).toBe("twitch");
       expect(result.messageId).toBe("twitch-msg-123");
+      expect(result.receipt.platformMessageIds).toEqual(["twitch-msg-123"]);
       expect(sendMessageTwitchInternal).toHaveBeenCalledWith(
         "testchannel",
         "Hello Twitch!",
@@ -286,6 +302,7 @@ describe("outbound", () => {
       vi.mocked(sendMessageTwitchInternal).mockResolvedValue({
         ok: true,
         messageId: "msg-456",
+        receipt: twitchTestReceipt("msg-456"),
       });
 
       await twitchOutbound.sendText!({
@@ -332,6 +349,7 @@ describe("outbound", () => {
       vi.mocked(sendMessageTwitchInternal).mockResolvedValue({
         ok: true,
         messageId: "msg-secondary",
+        receipt: twitchTestReceipt("msg-secondary"),
       });
 
       await twitchOutbound.sendText!({
@@ -378,6 +396,7 @@ describe("outbound", () => {
       vi.mocked(sendMessageTwitchInternal).mockResolvedValue({
         ok: false,
         messageId: "failed-msg",
+        receipt: createMessageReceiptFromOutboundResults({ results: [] }),
         error: "Connection lost",
       });
 
@@ -400,6 +419,7 @@ describe("outbound", () => {
       vi.mocked(sendMessageTwitchInternal).mockResolvedValue({
         ok: true,
         messageId: "media-msg-123",
+        receipt: twitchTestReceipt("media-msg-123"),
       });
 
       const result = await twitchOutbound.sendMedia!({
@@ -412,6 +432,7 @@ describe("outbound", () => {
 
       expect(result.channel).toBe("twitch");
       expect(result.messageId).toBe("media-msg-123");
+      expect(result.receipt.platformMessageIds).toEqual(["media-msg-123"]);
       expect(sendMessageTwitchInternal).toHaveBeenCalledWith(
         expect.anything(),
         "Check this: https://example.com/image.png",
@@ -429,6 +450,7 @@ describe("outbound", () => {
       vi.mocked(sendMessageTwitchInternal).mockResolvedValue({
         ok: true,
         messageId: "media-only-msg",
+        receipt: twitchTestReceipt("media-only-msg"),
       });
 
       await twitchOutbound.sendMedia!({

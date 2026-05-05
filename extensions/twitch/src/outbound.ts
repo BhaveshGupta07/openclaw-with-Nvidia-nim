@@ -143,6 +143,7 @@ export const twitchOutbound: ChannelOutboundAdapter = {
     return {
       channel: "twitch",
       messageId: result.messageId,
+      receipt: result.receipt,
       timestamp: Date.now(),
     };
   },
