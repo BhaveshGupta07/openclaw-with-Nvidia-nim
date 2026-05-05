@@ -3,6 +3,7 @@ import {
   resetFacadeRuntimeStateForTest,
 } from "openclaw/plugin-sdk/plugin-test-runtime";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { imessagePlugin } from "./channel.js";
 import { createIMessageTestPlugin } from "./imessage.test-plugin.js";
 
 beforeEach(() => {
@@ -27,5 +28,24 @@ describe("createIMessageTestPlugin", () => {
     const prefixedHandle = `${"imessage:".repeat(5000)}+44 20 7946 0958`;
 
     expect(plugin.messaging?.normalizeTarget?.(prefixedHandle)).toBe("+442079460958");
+  });
+
+  it("declares durable final delivery capabilities", () => {
+    expect(imessagePlugin.outbound?.deliveryCapabilities?.durableFinal).toEqual(
+      expect.objectContaining({
+        text: true,
+        media: true,
+        replyTo: true,
+        messageSendingHooks: true,
+      }),
+    );
+    expect(createIMessageTestPlugin().outbound?.deliveryCapabilities?.durableFinal).toEqual(
+      expect.objectContaining({
+        text: true,
+        media: true,
+        replyTo: true,
+        messageSendingHooks: true,
+      }),
+    );
   });
 });

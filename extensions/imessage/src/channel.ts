@@ -246,6 +246,14 @@ export const imessagePlugin: ChannelPlugin<ResolvedIMessageAccount, IMessageProb
         chunkerMode: "text",
         textChunkLimit: 4000,
         sanitizeText: ({ text }) => sanitizeForPlainText(sanitizeOutboundText(text)),
+        deliveryCapabilities: {
+          durableFinal: {
+            text: true,
+            media: true,
+            replyTo: true,
+            messageSendingHooks: true,
+          },
+        },
       },
       attachedResults: {
         channel: "imessage",

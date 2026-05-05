@@ -18,6 +18,7 @@ import {
 } from "openclaw/plugin-sdk/inbound-reply-dispatch";
 import { isInboundPathAllowed, kindFromMime } from "openclaw/plugin-sdk/media-runtime";
 import { DEFAULT_GROUP_HISTORY_LIMIT, type HistoryEntry } from "openclaw/plugin-sdk/reply-history";
+import { resolveSendableOutboundReplyParts } from "openclaw/plugin-sdk/reply-payload";
 import { resolveTextChunkLimit } from "openclaw/plugin-sdk/reply-runtime";
 import { dispatchInboundMessage } from "openclaw/plugin-sdk/reply-runtime";
 import { createReplyDispatcher } from "openclaw/plugin-sdk/reply-runtime";
@@ -421,6 +422,7 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
           runtime.error?.(danger("imessage: missing delivery target"));
           return;
         }
+        const reply = resolveSendableOutboundReplyParts(payload);
         const durable = await deliverDurableInboundReplyPayload({
           cfg,
           channel: "imessage",
@@ -436,6 +438,12 @@ export async function monitorIMessageProvider(opts: MonitorIMessageOpts = {}): P
               accountId: accountInfo.accountId,
               sentMessageCache,
             }),
+          },
+          requiredCapabilities: {
+            text: true,
+            media: reply.hasMedia,
+            replyTo: payload.replyToId != null,
+            messageSendingHooks: true,
           },
         });
         if (durable.status === "failed") {
