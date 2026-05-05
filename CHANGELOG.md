@@ -64,7 +64,7 @@ Docs: https://docs.openclaw.ai
 - Plugins/runtime state: add `registerIfAbsent` for atomic keyed-store dedupe claims that return whether a plugin successfully claimed a key without overwriting an existing live value. Thanks @amknight.
 - Plugin SDK: add plugin-owned `SessionEntry` slot projection and scoped trusted-policy session extension reads. (#75609; replaces part of #73384/#74483) Thanks @100yenadmin.
 - Sandbox/Windows: accept drive-absolute Docker bind sources while keeping sandbox blocked-path and allowed-root policy comparisons Windows-case-insensitive. (#42174) Thanks @6607changchun.
-- Managed proxy: add `proxy.loopbackMode` for Gateway loopback control-plane traffic, allowing operators to keep the default exact configured Gateway URL bypass, force loopback Gateway traffic through the proxy, or block it. (#77018) Thanks @jesse-merhi.
+- Managed proxy: add `proxy.loopbackMode` for Gateway loopback control-plane traffic, allowing operators to keep the default exact configured Gateway URL bypass, force loopback Gateway traffic through the proxy, or block it across forked OpenClaw child CLIs. (#77018) Thanks @jesse-merhi.
 
 ### Fixes
 
