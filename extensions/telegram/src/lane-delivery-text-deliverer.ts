@@ -683,18 +683,25 @@ export function createLaneTextDeliverer(params: CreateLaneTextDelivererParams) {
           skipRegressive: "existingOnly",
           context: "final",
         });
+        const finalizedMessageId = previewMessageId ?? lane.stream?.messageId();
         if (finalized === "edited") {
           markActivePreviewComplete(laneName);
+          if (typeof finalizedMessageId !== "number") {
+            return result("preview-retained");
+          }
           return result("preview-finalized", {
             content: text,
-            messageId: previewMessageId ?? lane.stream?.messageId(),
+            messageId: finalizedMessageId,
           });
         }
         if (finalized === "regressive-skipped") {
           markActivePreviewComplete(laneName);
+          if (typeof finalizedMessageId !== "number") {
+            return result("preview-retained");
+          }
           return result("preview-finalized", {
             content: lane.lastPartialText,
-            messageId: previewMessageId ?? lane.stream?.messageId(),
+            messageId: finalizedMessageId,
           });
         }
         if (finalized === "retained") {
