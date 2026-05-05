@@ -9,11 +9,13 @@ describe("durable final capability contracts", () => {
     expect(
       listDeclaredDurableFinalCapabilities({
         batch: true,
+        afterCommit: true,
+        reconcileUnknownSend: true,
         text: true,
         silent: false,
         thread: true,
       }),
-    ).toEqual(["text", "thread", "batch"]);
+    ).toEqual(["text", "thread", "batch", "reconcileUnknownSend", "afterCommit"]);
   });
 
   it("runs proofs for every declared durable-final capability", async () => {

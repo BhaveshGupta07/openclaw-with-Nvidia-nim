@@ -21,6 +21,9 @@ describe("deriveDurableFinalDeliveryRequirements", () => {
         silent: true,
         payloadTransport: true,
         batch: true,
+        reconcileUnknownSend: true,
+        afterSendSuccess: true,
+        afterCommit: true,
       }),
     ).toEqual({
       text: true,
@@ -31,6 +34,9 @@ describe("deriveDurableFinalDeliveryRequirements", () => {
       messageSendingHooks: true,
       payload: true,
       batch: true,
+      reconcileUnknownSend: true,
+      afterSendSuccess: true,
+      afterCommit: true,
     });
   });
 

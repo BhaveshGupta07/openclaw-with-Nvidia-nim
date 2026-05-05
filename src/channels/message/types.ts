@@ -1,15 +1,21 @@
 export type MessageDurabilityPolicy = "required" | "best_effort" | "disabled";
 
-export type DurableFinalDeliveryCapability =
-  | "text"
-  | "media"
-  | "payload"
-  | "silent"
-  | "replyTo"
-  | "thread"
-  | "nativeQuote"
-  | "messageSendingHooks"
-  | "batch";
+export const durableFinalDeliveryCapabilities = [
+  "text",
+  "media",
+  "payload",
+  "silent",
+  "replyTo",
+  "thread",
+  "nativeQuote",
+  "messageSendingHooks",
+  "batch",
+  "reconcileUnknownSend",
+  "afterSendSuccess",
+  "afterCommit",
+] as const;
+
+export type DurableFinalDeliveryCapability = (typeof durableFinalDeliveryCapabilities)[number];
 
 export type DurableFinalDeliveryRequirementMap = Partial<
   Record<DurableFinalDeliveryCapability, boolean>
@@ -135,6 +141,9 @@ export type DeriveDurableFinalDeliveryRequirementsParams = {
   messageSendingHooks?: boolean;
   payloadTransport?: boolean;
   batch?: boolean;
+  reconcileUnknownSend?: boolean;
+  afterSendSuccess?: boolean;
+  afterCommit?: boolean;
   extraCapabilities?: DurableFinalRequirementExtras;
 };
 

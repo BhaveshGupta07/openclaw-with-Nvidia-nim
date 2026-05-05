@@ -42,6 +42,9 @@ export function deriveDurableFinalDeliveryRequirements(
   setRequired(requirements, "messageSendingHooks", params.messageSendingHooks !== false);
   setRequired(requirements, "payload", params.payloadTransport);
   setRequired(requirements, "batch", params.batch);
+  setRequired(requirements, "reconcileUnknownSend", params.reconcileUnknownSend);
+  setRequired(requirements, "afterSendSuccess", params.afterSendSuccess);
+  setRequired(requirements, "afterCommit", params.afterCommit);
 
   for (const [capability, required] of Object.entries(params.extraCapabilities ?? {}) as Array<
     [DurableFinalDeliveryCapability, boolean | undefined]

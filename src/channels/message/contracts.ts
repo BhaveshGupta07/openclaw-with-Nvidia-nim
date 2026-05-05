@@ -2,6 +2,7 @@ import type {
   DurableFinalDeliveryCapability,
   DurableFinalDeliveryRequirementMap,
 } from "./types.js";
+import { durableFinalDeliveryCapabilities } from "./types.js";
 
 export type DurableFinalCapabilityProof = () => Promise<void> | void;
 
@@ -14,22 +15,12 @@ export type DurableFinalCapabilityProofResult = {
   status: "verified" | "not_declared";
 };
 
-const durableFinalCapabilityOrder: readonly DurableFinalDeliveryCapability[] = [
-  "text",
-  "media",
-  "payload",
-  "silent",
-  "replyTo",
-  "thread",
-  "nativeQuote",
-  "messageSendingHooks",
-  "batch",
-];
-
 export function listDeclaredDurableFinalCapabilities(
   capabilities: DurableFinalDeliveryRequirementMap | undefined,
 ): DurableFinalDeliveryCapability[] {
-  return durableFinalCapabilityOrder.filter((capability) => capabilities?.[capability] === true);
+  return durableFinalDeliveryCapabilities.filter(
+    (capability) => capabilities?.[capability] === true,
+  );
 }
 
 export async function verifyDurableFinalCapabilityProofs(params: {
@@ -38,7 +29,7 @@ export async function verifyDurableFinalCapabilityProofs(params: {
   proofs: DurableFinalCapabilityProofMap;
 }): Promise<DurableFinalCapabilityProofResult[]> {
   const results: DurableFinalCapabilityProofResult[] = [];
-  for (const capability of durableFinalCapabilityOrder) {
+  for (const capability of durableFinalDeliveryCapabilities) {
     if (params.capabilities?.[capability] !== true) {
       results.push({ capability, status: "not_declared" });
       continue;

@@ -56,4 +56,6 @@ export type {
   MessageReceiptSourceResult,
   RenderedMessageBatch,
   RenderedMessageBatchPlan,
+  RenderedMessageBatchPlanItem,
+  RenderedMessageBatchPlanKind,
 } from "./types.js";
