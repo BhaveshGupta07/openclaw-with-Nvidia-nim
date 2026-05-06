@@ -1,6 +1,8 @@
 import { defineSingleProviderPluginEntry } from "openclaw/plugin-sdk/provider-entry";
+import { normalizeProviderId } from "openclaw/plugin-sdk/provider-model-shared";
+import { normalizeOptionalString } from "openclaw/plugin-sdk/text-runtime";
 import { applyNvidiaConfig, NVIDIA_DEFAULT_MODEL_REF } from "./onboard.js";
-import { buildNvidiaProvider } from "./provider-catalog.js";
+import { buildDiscoveredNvidiaProvider, buildNvidiaProvider } from "./provider-catalog.js";
 
 const PROVIDER_ID = "nvidia";
 
@@ -38,7 +40,25 @@ export default defineSingleProviderPluginEntry({
       },
     ],
     catalog: {
-      buildProvider: buildNvidiaProvider,
+      run: async (ctx) => {
+        const auth = ctx.resolveProviderApiKey(PROVIDER_ID);
+        if (!auth.apiKey) {
+          return null;
+        }
+        const configuredProvider = Object.entries(ctx.config.models?.providers ?? {}).find(
+          ([providerId]) => normalizeProviderId(providerId) === PROVIDER_ID,
+        )?.[1];
+        return {
+          provider: await buildDiscoveredNvidiaProvider({
+            apiKey: auth.apiKey,
+            discoveryApiKey: auth.discoveryApiKey,
+            baseUrl: normalizeOptionalString(configuredProvider?.baseUrl),
+          }),
+        };
+      },
+      staticRun: async () => ({
+        provider: buildNvidiaProvider(),
+      }),
     },
     augmentModelCatalog: buildNvidiaCatalogModels,
     wizard: {

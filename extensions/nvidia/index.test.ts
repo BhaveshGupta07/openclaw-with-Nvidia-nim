@@ -132,6 +132,28 @@ describe("nvidia provider hooks", () => {
     expect(entries?.every((entry) => entry.provider === "nvidia")).toBe(true);
   });
 
+  it("uses NVIDIA /v1/models discovery for authenticated catalog setup", async () => {
+    const provider = await registerNvidiaProvider();
+
+    const result = await provider.catalog?.run({
+      config: {},
+      env: {},
+      resolveProviderApiKey: () => ({ apiKey: "NVIDIA_API_KEY", discoveryApiKey: "nvapi-test" }),
+      resolveProviderAuth: () => ({
+        apiKey: "nvapi-test",
+        mode: "api_key",
+        source: "env",
+      }),
+    });
+
+    expect(result).toMatchObject({
+      provider: {
+        baseUrl: "https://integrate.api.nvidia.com/v1",
+        apiKey: "NVIDIA_API_KEY",
+      },
+    });
+  });
+
   it("opts into literal provider-prefix preservation", async () => {
     const provider = await registerNvidiaProvider();
 

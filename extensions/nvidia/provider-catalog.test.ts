@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildNvidiaProvider } from "./provider-catalog.js";
+import { buildDiscoveredNvidiaProvider, buildNvidiaProvider } from "./provider-catalog.js";
 
 describe("nvidia provider catalog", () => {
   it("builds the bundled NVIDIA provider defaults", () => {
@@ -17,5 +17,22 @@ describe("nvidia provider catalog", () => {
     expect(provider.models.every((model) => model.compat?.requiresStringContent === true)).toBe(
       true,
     );
+  });
+
+  it("builds a discovered provider with resolved auth and configured base URL", async () => {
+    const provider = await buildDiscoveredNvidiaProvider({
+      apiKey: "NVIDIA_API_KEY",
+      discoveryApiKey: "nvapi-test",
+      baseUrl: "https://nim.example.com/v1",
+    });
+
+    expect(provider.baseUrl).toBe("https://nim.example.com/v1");
+    expect(provider.apiKey).toBe("NVIDIA_API_KEY");
+    expect(provider.models.map((model) => model.id)).toEqual([
+      "nvidia/nemotron-3-super-120b-a12b",
+      "moonshotai/kimi-k2.5",
+      "minimaxai/minimax-m2.5",
+      "z-ai/glm5",
+    ]);
   });
 });

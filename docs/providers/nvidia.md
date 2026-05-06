@@ -80,13 +80,17 @@ openclaw onboard --auth-choice nvidia-api-key --nvidia-api-key "nvapi-..."
   </Accordion>
 
   <Accordion title="Catalog and pricing">
-    The bundled catalog is static. Costs default to `0` in source since NVIDIA
-    currently offers free API access for the listed models.
+    During authenticated setup, OpenClaw asks NVIDIA's OpenAI-compatible
+    `/v1/models` endpoint for available NIM models and deduplicates returned
+    model IDs. If discovery is unavailable, the bundled catalog above is used
+    as a static fallback. Costs default to `0` in source since NVIDIA currently
+    offers free API access for the listed models.
   </Accordion>
 
   <Accordion title="OpenAI-compatible endpoint">
-    NVIDIA uses the standard `/v1` completions endpoint. Any OpenAI-compatible
-    tooling should work out of the box with the NVIDIA base URL.
+    NVIDIA uses the standard `/v1` OpenAI-compatible endpoints, including
+    `/v1/chat/completions` and `/v1/models`. Any OpenAI-compatible tooling
+    should work out of the box with the NVIDIA base URL.
   </Accordion>
 </AccordionGroup>
 
